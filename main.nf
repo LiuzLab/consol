@@ -1,4 +1,5 @@
 params.input_jsonl = file("./resources/data/aime24.jsonl")
+params.publishDirSuffix = ""
 
 process JSONL_TO_CSV {
     input:
@@ -27,8 +28,8 @@ process ADAPTIVE_CONSISTENCY {
     output:
     file("${id}.csv")
 
-    maxForks 32
-    publishDir "published/adaptive_consistency/"
+    maxForks 10
+    publishDir "published/${params.publishDirSuffix}/adaptive_consistency/"
     tag "${id}.csv"
 
     script:
@@ -37,7 +38,7 @@ process ADAPTIVE_CONSISTENCY {
     """
     #!/usr/bin/env bash
 
-    adaptive_consistency.py --prompt "$safe_input" --model o3-mini-low > ${id}.csv
+    adaptive_consistency.py --prompt "$safe_input" --model o3-mini-high > ${id}.csv
     """
 }
 
@@ -49,7 +50,7 @@ process SELF_CONSISTENCY {
     file("${id}.csv")
 
     maxForks 1
-    publishDir "published/self_consistency/"
+    publishDir "published/${params.publishDirSuffix}/self_consistency/"
     tag "${id}.csv"
 
     script:
@@ -58,12 +59,12 @@ process SELF_CONSISTENCY {
     """
     #!/usr/bin/env bash
 
-    self_consistency.py --prompt "$safe_input" --model o3-mini-low > ${id}.csv
+    self_consistency.py --prompt "$safe_input" --model o3-mini-high > ${id}.csv
     """
 }
 
 workflow {
     tuples_ch = JSONL_TO_CSV(file(params.input_jsonl).text).splitCsv(header:true, quote: '"')
-    // ADAPTIVE_CONSISTENCY(tuples_ch)
-    SELF_CONSISTENCY(tuples_ch)
+    ADAPTIVE_CONSISTENCY(tuples_ch)
+    // SELF_CONSISTENCY(tuples_ch)
 }

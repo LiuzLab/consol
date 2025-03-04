@@ -1,9 +1,13 @@
+import abc
 import pydantic
 import typing
 
-class Output(pydantic.BaseModel):
+class AbstractOutput(pydantic.BaseModel, abc.ABC):
+    pass
+
+class FloatOutput(AbstractOutput):
     answer: float
 
-class ReasonedOutput(pydantic.BaseModel):
+class ReasonedFloatOutput(AbstractOutput):
     reasons: typing.List[str]
     answer: float
