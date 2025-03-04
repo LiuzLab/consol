@@ -21,6 +21,28 @@ process JSONL_TO_CSV {
     """
 }
 
+process CONSOL_CONSISTENCY {
+    input:
+    tuple(val(id), val(input), val(target))
+
+    output:
+    file("${id}.csv")
+
+    maxForks 32
+    publishDir "published/${params.publishDirSuffix}/consol_consistency/"
+    tag "${id}.csv"
+
+    script:
+    // Escape to avoid bash misinterpretation.
+    def safe_input = input.replace("\$", "\\\$")
+    """
+    #!/usr/bin/env bash
+
+    export PATH=\$PATH:$moduleDir/bin/consol
+    main.py --prompt "$safe_input" > ${id}.csv
+    """
+}
+
 process ADAPTIVE_CONSISTENCY {
     input:
     tuple(val(id), val(input), val(target))
@@ -28,7 +50,7 @@ process ADAPTIVE_CONSISTENCY {
     output:
     file("${id}.csv")
 
-    maxForks 10
+    maxForks 32
     publishDir "published/${params.publishDirSuffix}/adaptive_consistency/"
     tag "${id}.csv"
 
@@ -38,7 +60,8 @@ process ADAPTIVE_CONSISTENCY {
     """
     #!/usr/bin/env bash
 
-    adaptive_consistency.py --prompt "$safe_input" --model o3-mini-high > ${id}.csv
+    export PATH=\$PATH:$moduleDir/bin/consol
+    adaptive_consistency.py --prompt "$safe_input" --model gpt-4o-mini > ${id}.csv
     """
 }
 
@@ -59,12 +82,14 @@ process SELF_CONSISTENCY {
     """
     #!/usr/bin/env bash
 
+    export PATH=\$PATH:$moduleDir/bin/consol
     self_consistency.py --prompt "$safe_input" --model o3-mini-high > ${id}.csv
     """
 }
 
 workflow {
     tuples_ch = JSONL_TO_CSV(file(params.input_jsonl).text).splitCsv(header:true, quote: '"')
-    ADAPTIVE_CONSISTENCY(tuples_ch)
+    CONSOL_CONSISTENCY(tuples_ch)
+    // ADAPTIVE_CONSISTENCY(tuples_ch)
     // SELF_CONSISTENCY(tuples_ch)
 }
