@@ -1,1 +1,1 @@
-from confident_solver import ConfidentSolver
+from .confident_solver import ConfidentSolver

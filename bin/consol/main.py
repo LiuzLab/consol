@@ -4,9 +4,9 @@ import argparse
 import dotenv
 dotenv.load_dotenv()
 
-from output_formats import ReasonedFloatOutput, FloatOutput
-from confidence_models import BayesianConfidenceModel
-from confident_solver import ConfidentSolver
+from .output_formats import ReasonedFloatOutput, FloatOutput
+from .confidence_models import BayesianConfidenceModel
+from .confident_solver import ConfidentSolver
 
 def main():
     parser = argparse.ArgumentParser()

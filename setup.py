@@ -2,19 +2,19 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.1.0",
+    version="0.1.4",
     packages=find_packages('bin'),
     package_dir={'': 'bin'},
     install_requires=[
-        'dotenv>=0.9.9',
-        'scipy>=1.15.2',
+        'python-dotenv',
+        'scipy',
+        'pandas',
         'langchain>=0.3.14',
         'langchain-openai>=0.3.3',
-        'pandas>=2.2.3',
     ],
     entry_points={
         'console_scripts': [
-            'consol-cli=consol.main:main',
+            'consol=consol.main:main',
         ],
     },
     author="Jaeyeon Lee",
