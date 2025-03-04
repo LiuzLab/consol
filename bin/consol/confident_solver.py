@@ -24,7 +24,7 @@ class ConfidentSolver:
     ):
         self.config = ConfidentSolverConfig(
             llm_model=llm_model,
-            max_trials=max_trials
+            max_trials=max_trials,
         )
         if llm_model in ["gpt-4o", "gpt-4o-mini"]:
             llm = langchain_openai.ChatOpenAI(
@@ -37,7 +37,7 @@ class ConfidentSolver:
                 reasoning_effort=llm_model.split("-")[-1],
             )
         else:
-            raise Exception("Unknown Model")
+            raise ValueError(f"Unknown Model: {llm_model}")
 
         if confidence_model == "sprt":
             self.confidence_model = SprtConfidenceModel()
@@ -50,7 +50,7 @@ class ConfidentSolver:
         elif isinstance(confidence_model, AbstractConfidenceModel):
             self.confidence_model = confidence_model
         else:
-            raise Exception("Unknown Confidence Model")
+            raise ValueError(f"Unknown Confidence Model: {confidence_model}")
 
         if output_schema == "float":
             output_schema = FloatOutput
@@ -59,61 +59,67 @@ class ConfidentSolver:
         elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
             pass
         else:
-            raise Exception("Unknown Output Schema")
+            raise ValueError(f"Unknown Output Schema: {output_schema}")
 
         self.llm_with_structured_output = llm.with_structured_output(output_schema, include_raw=True)
 
 
     def invoke(self, input, debug=False, **kwargs):
-        if isinstance(input, str):
-            messages = [langchain_core.messages.HumanMessage(input)]
-        else:
-            messages = input
-
+        messages = self._prepare_messages(input)
         max_trials = self.config.max_trials
         total_raw_outputs = []
         with tqdm.auto.tqdm(total=max_trials) as pbar:
             while True:
-                total_ss = pd.Series([x['parsed'].answer for x in total_raw_outputs]).value_counts()
-                two = total_ss.sort_values(ascending=False).head(2).to_list()
-
-                while len(two) < 2:
-                    two += [0]
-                first, second = two
-
-                for trials in range(0, max_trials + 1):
-                    if first+trials == 0:
-                        continue
-                    if self.confidence_model.test(first+trials, second):
-                        break
-
-                if trials >= max_trials - len(total_raw_outputs):
-                    trials = max_trials - len(total_raw_outputs)
-
+                first, second = self._get_top_two_answers(total_raw_outputs)
+                trials = self._determine_trials(first, second, max_trials, len(total_raw_outputs))
                 if trials == 0:
                     pbar.close()
                     break
-
-                raw_outputs = []
-                while len(raw_outputs) < trials:
-                    try:
-                        k = trials - len(raw_outputs)
-                        partial_raw_outputs = self.llm_with_structured_output.batch([messages] * k, **kwargs)
-                        partial_raw_outputs = [x for x in partial_raw_outputs if x['parsed']]
-                        raw_outputs += partial_raw_outputs
-                    except Exception as e:
-                        print(f"Unknown error during trial {len(raw_outputs)}/{trials} with input: {input}", e, file=sys.stderr)
-                        continue
+                raw_outputs = self._collect_raw_outputs(messages, trials, input, **kwargs)
                 total_raw_outputs += raw_outputs
                 pbar.update(trials)
+        df = self._create_dataframe(total_raw_outputs)
+        if debug:
+            return df
+        return df['answer'].mode().iloc[0]
 
-        df = pd.DataFrame({
+    def _prepare_messages(self, input):
+        if isinstance(input, str):
+            return [langchain_core.messages.HumanMessage(input)]
+        return input
+
+    def _get_top_two_answers(self, total_raw_outputs):
+        total_ss = pd.Series([x['parsed'].answer for x in total_raw_outputs]).value_counts()
+        two = total_ss.sort_values(ascending=False).head(2).to_list()
+        while len(two) < 2:
+            two += [0]
+        return two[0], two[1]
+
+    def _determine_trials(self, first, second, max_trials, current_trials):
+        for trials in range(0, max_trials + 1):
+            if first + trials == 0:
+                continue
+            if self.confidence_model.test(first + trials, second):
+                break
+        if trials >= max_trials - current_trials:
+            trials = max_trials - current_trials
+        return trials
+
+    def _collect_raw_outputs(self, messages, trials, input, **kwargs):
+        raw_outputs = []
+        while len(raw_outputs) < trials:
+            try:
+                k = trials - len(raw_outputs)
+                partial_raw_outputs = self.llm_with_structured_output.batch([messages] * k, **kwargs)
+                partial_raw_outputs = [x for x in partial_raw_outputs if x['parsed']]
+                raw_outputs += partial_raw_outputs
+            except Exception as e:
+                print(f"Unknown error during trial {len(raw_outputs)}/{trials} with input: {input}", e, file=sys.stderr)
+                continue
+        return raw_outputs
+
+    def _create_dataframe(self, total_raw_outputs):
+        return pd.DataFrame({
             'answer': [x['parsed'].answer for x in total_raw_outputs],
             'token_usage': [x['raw'].response_metadata['token_usage']['completion_tokens'] for x in total_raw_outputs],
         })
-
-        if debug:
-            return df
-
-        # The mode method can return multiple modes. Using iloc[0] to ensure only the first mode is returned.
-        return df['answer'].mode().iloc[0]
