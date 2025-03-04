@@ -28,7 +28,7 @@ process CONSOL_CONSISTENCY {
     output:
     file("${id}.csv")
 
-    maxForks 32
+    maxForks 5
     publishDir "published/${params.publishDirSuffix}/consol_consistency/"
     tag "${id}.csv"
 
@@ -39,7 +39,7 @@ process CONSOL_CONSISTENCY {
     #!/usr/bin/env bash
 
     export PATH=\$PATH:$moduleDir/bin/consol
-    main.py --prompt "$safe_input" > ${id}.csv
+    main.py --prompt "$safe_input" --debug --llm_model o3-mini-high > ${id}.csv
     """
 }
 
@@ -50,7 +50,7 @@ process ADAPTIVE_CONSISTENCY {
     output:
     file("${id}.csv")
 
-    maxForks 32
+    maxForks 5
     publishDir "published/${params.publishDirSuffix}/adaptive_consistency/"
     tag "${id}.csv"
 
@@ -61,7 +61,7 @@ process ADAPTIVE_CONSISTENCY {
     #!/usr/bin/env bash
 
     export PATH=\$PATH:$moduleDir/bin/consol
-    adaptive_consistency.py --prompt "$safe_input" --model gpt-4o-mini > ${id}.csv
+    adaptive_consistency.py --prompt "$safe_input" --model o3-mini-high > ${id}.csv
     """
 }
 
@@ -90,6 +90,6 @@ process SELF_CONSISTENCY {
 workflow {
     tuples_ch = JSONL_TO_CSV(file(params.input_jsonl).text).splitCsv(header:true, quote: '"')
     CONSOL_CONSISTENCY(tuples_ch)
+    SELF_CONSISTENCY(tuples_ch)
     // ADAPTIVE_CONSISTENCY(tuples_ch)
-    // SELF_CONSISTENCY(tuples_ch)
 }

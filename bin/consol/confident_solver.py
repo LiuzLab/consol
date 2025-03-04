@@ -33,6 +33,7 @@ class ConfidentSolver:
         elif llm_model in ["o3-mini-low", "o3-mini-medium", "o3-mini-high"]:
             assert output_schema not in ["reasoned_float"]
             llm = langchain_openai.ChatOpenAI(
+                model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
             )
         else:
