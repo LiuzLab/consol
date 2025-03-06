@@ -1,4 +1,4 @@
-params.input_jsonl = file("./resources/data/aime24.jsonl")
+params.input_jsonl = file("./resources/data/gsm.jsonl")
 params.publishDirSuffix = ""
 
 process JSONL_TO_CSV {
@@ -21,15 +21,15 @@ process JSONL_TO_CSV {
     """
 }
 
-process CONSOL_CONSISTENCY {
+process CONSOL {
     input:
     tuple(val(id), val(input), val(target))
 
     output:
     file("${id}.csv")
 
-    maxForks 5
-    publishDir "published/${params.publishDirSuffix}/consol_consistency/"
+    maxForks 32
+    publishDir "published/${params.publishDirSuffix}/"
     tag "${id}.csv"
 
     script:
@@ -37,59 +37,11 @@ process CONSOL_CONSISTENCY {
     def safe_input = input.replace("\$", "\\\$")
     """
     #!/usr/bin/env bash
-
-    export PATH=\$PATH:$moduleDir/bin/consol
-    main.py --prompt "$safe_input" --debug --llm_model o3-mini-high > ${id}.csv
-    """
-}
-
-process ADAPTIVE_CONSISTENCY {
-    input:
-    tuple(val(id), val(input), val(target))
-
-    output:
-    file("${id}.csv")
-
-    maxForks 5
-    publishDir "published/${params.publishDirSuffix}/adaptive_consistency/"
-    tag "${id}.csv"
-
-    script:
-    // Escape to avoid bash misinterpretation.
-    def safe_input = input.replace("\$", "\\\$")
-    """
-    #!/usr/bin/env bash
-
-    export PATH=\$PATH:$moduleDir/bin/consol
-    adaptive_consistency.py --prompt "$safe_input" --model o3-mini-high > ${id}.csv
-    """
-}
-
-process SELF_CONSISTENCY {
-    input:
-    tuple(val(id), val(input), val(target))
-
-    output:
-    file("${id}.csv")
-
-    maxForks 1
-    publishDir "published/${params.publishDirSuffix}/self_consistency/"
-    tag "${id}.csv"
-
-    script:
-    // Escape to avoid bash misinterpretation.
-    def safe_input = input.replace("\$", "\\\$")
-    """
-    #!/usr/bin/env bash
-
-    export PATH=\$PATH:$moduleDir/bin/consol
-    self_consistency.py --prompt "$safe_input" --model o3-mini-high > ${id}.csv
+    consol --prompt "$safe_input" --debug --llm_model gpt-4o-mini --confidence_model vote > ${id}.csv
     """
 }
 
 workflow {
     tuples_ch = JSONL_TO_CSV(file(params.input_jsonl).text).splitCsv(header:true, quote: '"')
-    CONSOL_CONSISTENCY(tuples_ch)
-    SELF_CONSISTENCY(tuples_ch)
-    // ADAPTIVE_CONSISTENCY(tuples_ch)
+    CONSOL(tuples_ch)
 }
