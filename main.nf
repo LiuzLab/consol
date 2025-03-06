@@ -1,7 +1,7 @@
 params.input_jsonl = file("./resources/data/aime24.jsonl")
 params.publishDirSuffix = ""
 params.llm_model = "o3-mini-low"
-params.confidence_model = "sprt"
+params.confidence_model = "bayesian"
 
 process JSONL_TO_CSV {
     input:
