@@ -1,10 +1,7 @@
-params.input_jsonl = file("./resources/data/gsm.jsonl")
+params.input = "medqa"
 params.publishDirSuffix = ""
 
 process JSONL_TO_CSV {
-    input:
-    stdin
-
     output:
     stdout
 
@@ -12,9 +9,8 @@ process JSONL_TO_CSV {
     #!/usr/bin/env python
     import pandas as pd
     import sys
-
-    df = pd.read_json(sys.stdin, lines=True).reset_index()
-
+    import consol.utils
+    df = consol.utils.load_dataset('${params.input}').reset_index()
     # Escape to avoid CSV misinterpretation from Nextflow.
     df['input'] = df.input.apply(lambda x: x.replace('\\n', '<br/>').replace('"', "&quot;"))
     print(df.to_csv(index=False))
@@ -42,6 +38,6 @@ process CONSOL {
 }
 
 workflow {
-    tuples_ch = JSONL_TO_CSV(file(params.input_jsonl).text).splitCsv(header:true, quote: '"')
+    tuples_ch = JSONL_TO_CSV().splitCsv(header:true, quote: '"')
     CONSOL(tuples_ch)
 }
