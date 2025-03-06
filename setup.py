@@ -3,18 +3,18 @@ from setuptools import setup, find_packages
 setup(
     name="consol",
     version="0.1.4",
-    packages=find_packages('bin'),
-    package_dir={'': 'bin'},
+    packages=find_packages("bin"),
+    package_dir={"": "bin"},
     install_requires=[
-        'python-dotenv',
-        'scipy',
-        'pandas',
-        'langchain>=0.3.14',
-        'langchain-openai>=0.3.3',
+        "python-dotenv",
+        "scipy",
+        "pandas",
+        "langchain>=0.3.14",
+        "langchain-openai>=0.3.3",
     ],
     entry_points={
-        'console_scripts': [
-            'consol=consol.main:main',
+        "console_scripts": [
+            "consol=consol.main:main",
         ],
     },
     author="Jaeyeon Lee",

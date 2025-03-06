@@ -8,11 +8,21 @@ import tqdm.auto
 import pandas as pd
 
 from .output_formats import AbstractOutput, FloatOutput, ReasonedFloatOutput
-from .confidence_models import AbstractConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianConfidenceModel, VoteConfidenceModel
+from .confidence_models import (
+    AbstractConfidenceModel,
+    SprtConfidenceModel,
+    PValueConfidenceModel,
+    BayesianConfidenceModel,
+    VoteConfidenceModel,
+)
+
 
 class ConfidentSolverConfig(pydantic.BaseModel):
-    llm_model: typing.Literal["gpt-4o", "gpt-4o-mini", "o3-mini-low", "o3-mini-medium", "o3-mini-high"]
+    llm_model: typing.Literal[
+        "gpt-4o", "gpt-4o-mini", "o3-mini-low", "o3-mini-medium", "o3-mini-high"
+    ]
     max_trials: int
+
 
 class ConfidentSolver:
     def __init__(
@@ -56,13 +66,16 @@ class ConfidentSolver:
             output_schema = FloatOutput
         elif output_schema == "reasoned_float":
             output_schema = ReasonedFloatOutput
-        elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
+        elif isinstance(output_schema, type) and issubclass(
+            output_schema, AbstractOutput
+        ):
             pass
         else:
             raise ValueError(f"Unknown Output Schema: {output_schema}")
 
-        self.llm_with_structured_output = llm.with_structured_output(output_schema, include_raw=True)
-
+        self.llm_with_structured_output = llm.with_structured_output(
+            output_schema, include_raw=True
+        )
 
     def invoke(self, input, debug=False, **kwargs):
         messages = self._prepare_messages(input)
@@ -71,17 +84,21 @@ class ConfidentSolver:
         with tqdm.auto.tqdm(total=max_trials) as pbar:
             while True:
                 first, second = self._get_top_two_answers(total_raw_outputs)
-                trials = self._determine_trials(first, second, max_trials, len(total_raw_outputs))
+                trials = self._determine_trials(
+                    first, second, max_trials, len(total_raw_outputs)
+                )
                 if trials == 0:
                     pbar.close()
                     break
-                raw_outputs = self._collect_raw_outputs(messages, trials, input, **kwargs)
+                raw_outputs = self._collect_raw_outputs(
+                    messages, trials, input, **kwargs
+                )
                 total_raw_outputs += raw_outputs
                 pbar.update(trials)
         df = self._create_dataframe(total_raw_outputs)
         if debug:
             return df
-        return df['answer'].mode().iloc[0]
+        return df["answer"].mode().iloc[0]
 
     def _prepare_messages(self, input):
         if isinstance(input, str):
@@ -89,7 +106,9 @@ class ConfidentSolver:
         return input
 
     def _get_top_two_answers(self, total_raw_outputs):
-        total_ss = pd.Series([x['parsed'].answer for x in total_raw_outputs]).value_counts()
+        total_ss = pd.Series(
+            [x["parsed"].answer for x in total_raw_outputs]
+        ).value_counts()
         two = total_ss.sort_values(ascending=False).head(2).to_list()
         while len(two) < 2:
             two += [0]
@@ -110,16 +129,27 @@ class ConfidentSolver:
         while len(raw_outputs) < trials:
             try:
                 k = trials - len(raw_outputs)
-                partial_raw_outputs = self.llm_with_structured_output.batch([messages] * k, **kwargs)
-                partial_raw_outputs = [x for x in partial_raw_outputs if x['parsed']]
+                partial_raw_outputs = self.llm_with_structured_output.batch(
+                    [messages] * k, **kwargs
+                )
+                partial_raw_outputs = [x for x in partial_raw_outputs if x["parsed"]]
                 raw_outputs += partial_raw_outputs
             except Exception as e:
-                print(f"Unknown error during trial {len(raw_outputs)}/{trials} with input: {input}", e, file=sys.stderr)
+                print(
+                    f"Unknown error during trial {len(raw_outputs)}/{trials} with input: {input}",
+                    e,
+                    file=sys.stderr,
+                )
                 continue
         return raw_outputs
 
     def _create_dataframe(self, total_raw_outputs):
-        return pd.DataFrame({
-            'answer': [x['parsed'].answer for x in total_raw_outputs],
-            'token_usage': [x['raw'].response_metadata['token_usage']['completion_tokens'] for x in total_raw_outputs],
-        })
+        return pd.DataFrame(
+            {
+                "answer": [x["parsed"].answer for x in total_raw_outputs],
+                "token_usage": [
+                    x["raw"].response_metadata["token_usage"]["completion_tokens"]
+                    for x in total_raw_outputs
+                ],
+            }
+        )
