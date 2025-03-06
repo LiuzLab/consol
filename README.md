@@ -2,6 +2,8 @@
 
 Solve problems confidently and efficiently using a statistical approach with LLM
 
+[![PyPI version](https://badge.fury.io/py/consol.svg)](https://badge.fury.io/py/consol)
+
 ## 🤗 Getting Started
 
 ```bash
