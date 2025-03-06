@@ -14,7 +14,6 @@ class AbstractConfidenceModel(abc.ABC):
 class SprtConfidenceModelConfig(pydantic.BaseModel):
     alpha: float
     beta: float
-    p0: float
     p1: float
 
 class SprtConfidenceModel(AbstractConfidenceModel):
@@ -22,18 +21,17 @@ class SprtConfidenceModel(AbstractConfidenceModel):
         self,
         alpha = 0.05,
         beta = 0.1,
-        p0 = 0.5,
-        p1 = 0.6,
+        p1 = 0.7,
     ):
         self.config = SprtConfidenceModelConfig(
             alpha = alpha,
             beta = beta,
-            p0 = p0,
             p1 = p1,
         )
 
     def test(self, first, second) -> bool:
-        alpha, beta, p0, p1 = self.config.alpha, self.config.beta, self.config.p0, self.config.p1
+        p0 = 0.5
+        alpha, beta, p1 = self.config.alpha, self.config.beta, self.config.p1
 
         logA = np.log((1 - beta) / alpha)
         logB = np.log(beta / (1 - alpha))
