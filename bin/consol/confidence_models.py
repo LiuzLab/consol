@@ -62,7 +62,7 @@ class BayesianConfidenceModelConfig(pydantic.BaseModel):
     priori: typing.Literal["jeffreys", "uniform"]
 
 class BayesianConfidenceModel(AbstractConfidenceModel):
-    def __init__(self, confidence_threshold = 0.95, priori = "jeffreys"):
+    def __init__(self, confidence_threshold = 0.95, priori = "uniform"):
         self.config = BayesianConfidenceModelConfig(
             confidence_threshold = confidence_threshold,
             priori = priori,
@@ -70,10 +70,10 @@ class BayesianConfidenceModel(AbstractConfidenceModel):
     def test(self, first, second) -> bool:
         confidence_threshold, priori = self.config.confidence_threshold, self.config.priori
 
-        if priori == "jeffreys":
-            confidence = 1 - scipy.special.betainc(first + 0.5, second + 0.5, 0.5)
-        elif priori == "uniform":
+        if priori == "uniform":
             confidence = 1 - scipy.special.betainc(first + 1, second + 1, 0.5)
+        elif priori == "jeffreys":
+            confidence = 1 - scipy.special.betainc(first + 0.5, second + 0.5, 0.5)
         else:
             raise ValueError("Invalid priori")
 
