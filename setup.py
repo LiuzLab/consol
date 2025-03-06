@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.1.5",
+    version="0.1.6",
     packages=find_packages('bin'),
     package_dir={'': 'bin'},
     install_requires=[

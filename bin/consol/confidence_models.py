@@ -21,7 +21,7 @@ class SprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
         alpha = 0.05,
-        beta = 0.05,
+        beta = 0.1,
         p0 = 0.5,
         p1 = 0.6,
     ):
