@@ -5,6 +5,9 @@ setup(
     version="0.1.6",
     packages=find_packages('bin'),
     package_dir={'': 'bin'},
+    package_data={
+        'consol': ['data/*.jsonl'],
+    },    
     install_requires=[
         'python-dotenv',
         'scipy',
