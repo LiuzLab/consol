@@ -1,5 +1,7 @@
 params.input = "medqa"
 params.publishDirSuffix = ""
+params.llm_model = "o3-mini-low"
+params.confidence_model = "bayesian"
 
 process JSONL_TO_CSV {
     output:
@@ -33,7 +35,7 @@ process CONSOL {
     def safe_input = input.replace("\$", "\\\$")
     """
     #!/usr/bin/env bash
-    consol --prompt "$safe_input" --debug --llm_model gpt-4o-mini --confidence_model vote > ${id}.csv
+    consol --prompt "$safe_input" --debug --llm_model ${params.llm_model} --confidence_model ${params.confidence_model} > ${id}.csv
     """
 }
 
