@@ -8,7 +8,7 @@ import tqdm.auto
 import pandas as pd
 
 from .output_formats import AbstractOutput, FloatOutput, ReasonedFloatOutput
-from .confidence_models import AbstractConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianConfidenceModel, VoteConfidenceModel
+from .confidence_models import AbstractConfidenceModel, SbftConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianConfidenceModel, VoteConfidenceModel
 
 class ConfidentSolverConfig(pydantic.BaseModel):
     llm_model: typing.Literal["gpt-4o", "gpt-4o-mini", "o3-mini-low", "o3-mini-medium", "o3-mini-high"]
@@ -39,7 +39,9 @@ class ConfidentSolver:
         else:
             raise ValueError(f"Unknown Model: {llm_model}")
 
-        if confidence_model == "sprt":
+        if confidence_model == "sbft":
+            self.confidence_model = SbftConfidenceModel()
+        elif confidence_model == "sprt":
             self.confidence_model = SprtConfidenceModel()
         elif confidence_model == "pvalue":
             self.confidence_model = PValueConfidenceModel()
