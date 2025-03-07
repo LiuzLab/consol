@@ -20,7 +20,7 @@ class ConfidentSolver:
         llm_model: str,
         confidence_model: typing.Union[str, AbstractConfidenceModel],
         output_schema: typing.Union[str, AbstractOutput],
-        max_trials=64,
+        max_trials=40,
     ):
         self.config = ConfidentSolverConfig(
             llm_model=llm_model,

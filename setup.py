@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.1.7",
+    version="0.1.8",
     packages=find_packages('consol'),
     install_requires=[
         'python-dotenv',
@@ -17,7 +17,7 @@ setup(
         ],
     },
     author=["Jaeyeon Lee", "Hyun-Hwan Jeong"],
-    author_email=["Jaeyeon.Lee@bcm.edu", "Hyun-Hwan Jeong"],
+    author_email=["Jaeyeon.Lee@bcm.edu", "hyun-hwan.jeong@bcm.edu"],
     description="consol: Confident Solver to use LLM to solve various problems confidently and efficiently with a statistical approach.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
