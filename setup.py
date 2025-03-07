@@ -2,12 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.1.6",
-    packages=find_packages('bin'),
-    package_dir={'': 'bin'},
-    package_data={
-        'consol': ['data/*.jsonl'],
-    },    
+    version="0.1.7",
+    packages=find_packages('consol'),
+    package_dir={'': 'consol'},
     install_requires=[
         'python-dotenv',
         'scipy',
@@ -20,8 +17,8 @@ setup(
             'consol=consol.main:main',
         ],
     },
-    author="Jaeyeon Lee",
-    author_email="Jaeyeon.Lee@bcm.edu",
+    author=["Jaeyeon Lee", "Hyun-Hwan Jeong"],
+    author_email=["Jaeyeon.Lee@bcm.edu", "Hyun-Hwan Jeong"],
     description="consol: Confident Solver to use LLM to solve various problems confidently and efficiently with a statistical approach.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
