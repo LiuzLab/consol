@@ -45,7 +45,7 @@ class SbftConfidenceModelConfig(pydantic.BaseModel):
     evidence_strength: typing.Literal["substantial", "strong", "decisive"]
     priori: typing.Literal["jeffreys", "uniform"]
 
-class SbftConfidenceModel():
+class SbftConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
         evidence_strength = "decisive",
