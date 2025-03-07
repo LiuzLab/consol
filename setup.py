@@ -4,7 +4,6 @@ setup(
     name="consol",
     version="0.1.7",
     packages=find_packages('consol'),
-    package_dir={'': 'consol'},
     install_requires=[
         'python-dotenv',
         'scipy',
