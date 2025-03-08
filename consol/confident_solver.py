@@ -1,3 +1,4 @@
+import enum
 import typing
 import sys
 
@@ -11,16 +12,35 @@ import pandas as pd
 from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEOutput
 from .confidence_models import AbstractConfidenceModel, MsprtConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianPosteriorConfidenceModel, VoteConfidenceModel
 
+class LlmModel(enum.StrEnum):
+    GPT_4O = "gpt-4o"
+    GPT_4O_MINI = "gpt-4o-mini"
+    O3_MINI_LOW = "o3-mini-low"
+    O3_MINI_MEDIUM = "o3-mini-medium"
+    O3_MINI_HIGH = "o3-mini-high"
+    OLLAMA_LLAMA3_2_8B = "ollama:llama3.2:8b"
+
+class ConfidenceModel(enum.StrEnum):
+    Msprt = "msprt"
+    Sprt = "sprt"
+    Pvalue = "pvalue"
+    BayesianPosterior = "bayesian_posterior"
+    Vote = "vote"
+
+class OutputType(enum.StrEnum):
+    Float = "float"
+    Abcde = "abcde"
+
 class ConfidentSolverConfig(pydantic.BaseModel):
-    llm_model: typing.Literal["gpt-4o", "gpt-4o-mini", "o3-mini-low", "o3-mini-medium", "o3-mini-high", "ollama:llama3.2:8b"]
+    llm_model: LlmModel
     max_trials: typing.Optional[int]
 
 class ConfidentSolver:
     def __init__(
         self,
-        llm_model: str,
-        confidence_model: typing.Union[str, AbstractConfidenceModel],
-        output_schema: typing.Union[str, AbstractOutput],
+        llm_model: LlmModel,
+        confidence_model: typing.Union[ConfidenceModel, AbstractConfidenceModel],
+        output_schema: typing.Union[OutputType, AbstractOutput],
         max_trials: typing.Optional[int],
     ):
         self.config = ConfidentSolverConfig(
@@ -28,42 +48,41 @@ class ConfidentSolver:
             max_trials=max_trials,
         )
 
-        if confidence_model == "msprt":
+        if confidence_model == ConfidenceModel.Msprt:
             self.confidence_model = MsprtConfidenceModel()
-        elif confidence_model == "sprt":
+        elif confidence_model == ConfidenceModel.Sprt:
             self.confidence_model = SprtConfidenceModel()
-        elif confidence_model == "pvalue":
+        elif confidence_model == ConfidenceModel.Pvalue:
             self.confidence_model = PValueConfidenceModel()
-        elif confidence_model == "bayesianposterior":
+        elif confidence_model == ConfidenceModel.BayesianPosterior:
             self.confidence_model = BayesianPosteriorConfidenceModel()
-        elif confidence_model == "vote":
+        elif confidence_model == ConfidenceModel.Vote:
             self.confidence_model = VoteConfidenceModel()
         elif isinstance(confidence_model, AbstractConfidenceModel):
             self.confidence_model = confidence_model
         else:
             raise ValueError(f"Unknown Confidence Model: {confidence_model}")
 
-        if output_schema == "float":
+        if output_schema == OutputType.Float:
             output_schema = FloatOutput
-        elif output_schema == "abced":
+        elif output_schema == OutputType.Abcde:
             output_schema = ABCDEOutput
         elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
             pass
         else:
             raise ValueError(f"Unknown Output Schema: {output_schema}")
 
-
-        if llm_model in ["o3-mini-low", "o3-mini-medium", "o3-mini-high"]:
+        if llm_model in [LlmModel.O3_MINI_LOW, LlmModel.O3_MINI_MEDIUM, LlmModel.O3_MINI_HIGH]:
             llm = langchain_openai.ChatOpenAI(
                 model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
             )
-        elif llm_model in ["gpt-4o", "gpt-4o-mini"]:
+        elif llm_model in [LlmModel.GPT_4O, LlmModel.GPT_4O_MINI]:
             llm = langchain_openai.ChatOpenAI(
                 model=llm_model,
             )
             output_schema = type("ReasonedOutputSchema", (output_schema, ReasonedMixin), {})
-        elif llm_model in ["ollama:llama3.2:8b"]:
+        elif llm_model in [LlmModel.OLLAMA_LLAMA3_2_8B]:
             llm = langchain_ollama.ChatOllama(
                 model=llm_model.split(":", 1)[-1],
             )
