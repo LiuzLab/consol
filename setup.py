@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.1.9-alpha",
-    packages=find_packages('consol'),
+    version="0.1.14",
+    packages=find_packages(),
     install_requires=[
         'python-dotenv',
         'scipy',
