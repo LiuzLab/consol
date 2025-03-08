@@ -3,6 +3,7 @@ import sys
 
 import pydantic
 import langchain_openai
+import langchain_ollama
 import langchain_core
 import tqdm.auto
 import pandas as pd
@@ -11,7 +12,7 @@ from .output_formats import AbstractOutput, FloatOutput, ReasonedFloatOutput
 from .confidence_models import AbstractConfidenceModel, SbftConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianConfidenceModel, VoteConfidenceModel
 
 class ConfidentSolverConfig(pydantic.BaseModel):
-    llm_model: typing.Literal["gpt-4o", "gpt-4o-mini", "o3-mini-low", "o3-mini-medium", "o3-mini-high"]
+    llm_model: typing.Literal["gpt-4o", "gpt-4o-mini", "o3-mini-low", "o3-mini-medium", "o3-mini-high", "ollama:llama3.2:8b"]
     max_trials: int
 
 class ConfidentSolver:
@@ -35,6 +36,10 @@ class ConfidentSolver:
             llm = langchain_openai.ChatOpenAI(
                 model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
+            )
+        elif llm_model in ["ollama:llama3.2:8b"]:
+            llm = langchain_ollama.ChatOllama(
+                model=llm_model.split(":", 1)[-1],
             )
         else:
             raise ValueError(f"Unknown Model: {llm_model}")
