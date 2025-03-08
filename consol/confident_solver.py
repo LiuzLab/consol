@@ -37,7 +37,7 @@ class ConfidentSolver:
                 model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
             )
-        elif llm_model in ["ollama:llama3.1:8b", "ollama:phi4:14b", "ollama:qwq:32b"]:
+        elif llm_model in ["ollama:llama3.1:8b", "ollama:qwq:32b"]:
             llm = langchain_ollama.ChatOllama(
                 model=llm_model.split(":", 1)[-1],
             )
