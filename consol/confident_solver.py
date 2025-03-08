@@ -126,7 +126,12 @@ class ConfidentSolver:
         return raw_outputs
 
     def _create_dataframe(self, total_raw_outputs):
+
+        if self.config.llm_model in ["ollama:llama3.1:8b", "ollama:qwq:32b"]:
+            token_usage = [x['raw'].usage_metadata['total_tokens'] for x in total_raw_outputs]
+        else:
+            token_usage = [x['raw'].response_metadata.token_usage['completion_tokens'] for x in total_raw_outputs]
         return pd.DataFrame({
             'answer': [x['parsed'].answer for x in total_raw_outputs],
-            'token_usage': [x['raw'].response_metadata['token_usage']['completion_tokens'] for x in total_raw_outputs],
+            'token_usage': token_usage,
         })
