@@ -19,7 +19,7 @@ class SprtConfidenceModelConfig(pydantic.BaseModel):
 class SprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
-        p1 = 0.7,
+        p1 = 0.6,
         alpha = 0.05,
         beta = 0.1,
     ):
@@ -36,24 +36,30 @@ class SprtConfidenceModel(AbstractConfidenceModel):
         logA = np.log((1 - beta) / alpha)
         logB = np.log(beta / (1 - alpha))
         logLR = first * np.log(p1 / p0) + second * np.log((1 - p1) / (1 - p0))
-        if logLR >= logA or logLR <= logB:
+        if logLR >= logA:
+            return True
+        elif logLR <= logB:
+            # Accept H0: The top two are not different.
             return True
         return False
 
 
-class SbftConfidenceModelConfig(pydantic.BaseModel):
-    evidence_strength: typing.Literal["substantial", "strong", "decisive"]
+class MsprtConfidenceModelConfig(pydantic.BaseModel):
     priori: typing.Literal["jeffreys", "uniform"]
+    alpha: float
+    beta: float
 
-class SbftConfidenceModel(AbstractConfidenceModel):
+class MsprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
-        evidence_strength = "decisive",
         priori = "uniform",
+        alpha = 0.05,
+        beta = 0.1,
     ):
-        self.config = SbftConfidenceModelConfig(
-            evidence_strength = evidence_strength,
+        self.config = MsprtConfidenceModelConfig(
             priori = priori,
+            alpha = alpha,
+            beta = beta,
         )
 
     def test(self, first, second) -> bool:
@@ -80,44 +86,41 @@ class SbftConfidenceModel(AbstractConfidenceModel):
               P(data|H1) = [ B(first+a, second+b) * (1 - I_{0.5}(first+a, second+b)) ]
                            / [ B(a, b) * (1 - I_{0.5}(a, b)) ]
         """
-        evidence_strength, priori = self.config.evidence_strength, self.config.priori
+        priori, alpha, beta = self.config.priori, self.config.alpha, self.config.beta
 
         if priori == "uniform":
-            alpha, beta = 1, 1
+            priori_alpha, priori_beta = 1, 1
         elif priori == "jeffreys":
-            alpha, beta = 0.5, 0.5
+            priori_alpha, priori_beta = 0.5, 0.5
         else:
             raise ValueError("Invalid priori")
 
-        if evidence_strength == "substantial":
-            K_threshold = 3.2
-        elif evidence_strength == "strong":
-            K_threshold = 10
-        elif evidence_strength == "decisive":
-            K_threshold = 100
-        else:
-            raise ValueError("Invalid evidence_strength")
+
+        logA = np.log((1 - beta) / alpha)
+        logB = np.log(beta / (1 - alpha))
 
         # Under the null hypothesis (H0), assume p = 0.5 for all trials.
         likelihood_H0 = 0.5 ** (first + second)
 
         # Compute the normalization constant for the truncated prior.
-        norm = 1 - scipy.special.betainc(alpha, beta, 0.5)
+        norm = 1 - scipy.special.betainc(priori_alpha, priori_beta, 0.5)
 
         # Compute the integral (in closed form) using the Beta function and the
         # regularized incomplete Beta function.
-        numerator = scipy.special.beta(first + alpha, second + beta) * \
-                    (1 - scipy.special.betainc(first + alpha, second + beta, 0.5))
+        numerator = scipy.special.beta(first + priori_alpha, second + priori_beta) * \
+                    (1 - scipy.special.betainc(first + priori_alpha, second + priori_beta, 0.5))
 
-        likelihood_H1 = numerator / (scipy.special.beta(alpha, beta) * norm)
+        likelihood_H1 = numerator / (scipy.special.beta(priori_alpha, priori_beta) * norm)
 
         # The Bayes factor K is the ratio of the likelihoods:
         #   K = P(data|H1) / P(data|H0)
-        K = likelihood_H1 / likelihood_H0
+        logLR = np.log(likelihood_H1 / likelihood_H0)
 
-        if K >= K_threshold:
+        if logLR >= logA:
             return True
-
+        elif logLR <= logB:
+            # Accept H0: The top two are not different.
+            return True
         return False
 
 
@@ -136,13 +139,13 @@ class PValueConfidenceModel(AbstractConfidenceModel):
         return False
 
 
-class BayesianConfidenceModelConfig(pydantic.BaseModel):
+class BayesianPosteriorConfidenceModelConfig(pydantic.BaseModel):
     confidence_threshold: float
     priori: typing.Literal["jeffreys", "uniform"]
 
-class BayesianConfidenceModel(AbstractConfidenceModel):
+class BayesianPosteriorConfidenceModel(AbstractConfidenceModel):
     def __init__(self, confidence_threshold = 0.95, priori = "uniform"):
-        self.config = BayesianConfidenceModelConfig(
+        self.config = BayesianPosteriorConfidenceModelConfig(
             confidence_threshold = confidence_threshold,
             priori = priori,
         )

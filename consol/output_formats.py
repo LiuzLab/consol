@@ -3,11 +3,13 @@ import pydantic
 import typing
 
 class AbstractOutput(pydantic.BaseModel, abc.ABC):
-    pass
+    answer: str
+
+class ReasonedMixin(abc.ABC):
+    reasons: typing.List[str]
 
 class FloatOutput(AbstractOutput):
     answer: float
 
-class ReasonedFloatOutput(AbstractOutput):
-    reasons: typing.List[str]
-    answer: float
+class ABCDEOutput(AbstractOutput):
+    answer: typing.Literal["A", "B", "C", "D", "E"]
