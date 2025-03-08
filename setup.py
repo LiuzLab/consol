@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.1.9-prealpha-20250307",
+    version="0.1.9-alpha",
     packages=find_packages('consol'),
     install_requires=[
         'python-dotenv',
