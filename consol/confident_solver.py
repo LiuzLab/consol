@@ -12,7 +12,7 @@ import pandas as pd
 from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEOutput
 from .confidence_models import AbstractConfidenceModel, MsprtConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianPosteriorConfidenceModel, VoteConfidenceModel
 
-class LlmModel(enum.StrEnum):
+class LlmModelEnum(enum.StrEnum):
     GPT_4O = "gpt-4o"
     GPT_4O_MINI = "gpt-4o-mini"
     O3_MINI_LOW = "o3-mini-low"
@@ -20,27 +20,27 @@ class LlmModel(enum.StrEnum):
     O3_MINI_HIGH = "o3-mini-high"
     OLLAMA_LLAMA3_2_8B = "ollama:llama3.2:8b"
 
-class ConfidenceModel(enum.StrEnum):
+class ConfidenceModelEnum(enum.StrEnum):
     Msprt = "msprt"
     Sprt = "sprt"
     Pvalue = "pvalue"
     BayesianPosterior = "bayesian_posterior"
     Vote = "vote"
 
-class OutputType(enum.StrEnum):
+class OutputTypeEnum(enum.StrEnum):
     Float = "float"
     Abcde = "abcde"
 
 class ConfidentSolverConfig(pydantic.BaseModel):
-    llm_model: LlmModel
+    llm_model: LlmModelEnum
     max_trials: typing.Optional[int]
 
 class ConfidentSolver:
     def __init__(
         self,
-        llm_model: LlmModel,
-        confidence_model: typing.Union[ConfidenceModel, AbstractConfidenceModel],
-        output_schema: typing.Union[OutputType, AbstractOutput],
+        llm_model: LlmModelEnum,
+        confidence_model: typing.Union[ConfidenceModelEnum, AbstractConfidenceModel],
+        output_schema: typing.Union[OutputTypeEnum, AbstractOutput],
         max_trials: typing.Optional[int],
     ):
         self.config = ConfidentSolverConfig(
@@ -48,41 +48,41 @@ class ConfidentSolver:
             max_trials=max_trials,
         )
 
-        if confidence_model == ConfidenceModel.Msprt:
+        if confidence_model == ConfidenceModelEnum.Msprt:
             self.confidence_model = MsprtConfidenceModel()
-        elif confidence_model == ConfidenceModel.Sprt:
+        elif confidence_model == ConfidenceModelEnum.Sprt:
             self.confidence_model = SprtConfidenceModel()
-        elif confidence_model == ConfidenceModel.Pvalue:
+        elif confidence_model == ConfidenceModelEnum.Pvalue:
             self.confidence_model = PValueConfidenceModel()
-        elif confidence_model == ConfidenceModel.BayesianPosterior:
+        elif confidence_model == ConfidenceModelEnum.BayesianPosterior:
             self.confidence_model = BayesianPosteriorConfidenceModel()
-        elif confidence_model == ConfidenceModel.Vote:
+        elif confidence_model == ConfidenceModelEnum.Vote:
             self.confidence_model = VoteConfidenceModel()
         elif isinstance(confidence_model, AbstractConfidenceModel):
             self.confidence_model = confidence_model
         else:
             raise ValueError(f"Unknown Confidence Model: {confidence_model}")
 
-        if output_schema == OutputType.Float:
+        if output_schema == OutputTypeEnum.Float:
             output_schema = FloatOutput
-        elif output_schema == OutputType.Abcde:
+        elif output_schema == OutputTypeEnum.Abcde:
             output_schema = ABCDEOutput
         elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
             pass
         else:
             raise ValueError(f"Unknown Output Schema: {output_schema}")
 
-        if llm_model in [LlmModel.O3_MINI_LOW, LlmModel.O3_MINI_MEDIUM, LlmModel.O3_MINI_HIGH]:
+        if llm_model in [LlmModelEnum.O3_MINI_LOW, LlmModelEnum.O3_MINI_MEDIUM, LlmModelEnum.O3_MINI_HIGH]:
             llm = langchain_openai.ChatOpenAI(
                 model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
             )
-        elif llm_model in [LlmModel.GPT_4O, LlmModel.GPT_4O_MINI]:
+        elif llm_model in [LlmModelEnum.GPT_4O, LlmModelEnum.GPT_4O_MINI]:
             llm = langchain_openai.ChatOpenAI(
                 model=llm_model,
             )
             output_schema = type("ReasonedOutputSchema", (output_schema, ReasonedMixin), {})
-        elif llm_model in [LlmModel.OLLAMA_LLAMA3_2_8B]:
+        elif llm_model in [LlmModelEnum.OLLAMA_LLAMA3_2_8B]:
             llm = langchain_ollama.ChatOllama(
                 model=llm_model.split(":", 1)[-1],
             )
