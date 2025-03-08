@@ -12,7 +12,7 @@ from .output_formats import AbstractOutput, FloatOutput, ReasonedFloatOutput
 from .confidence_models import AbstractConfidenceModel, SbftConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianConfidenceModel, VoteConfidenceModel
 
 class ConfidentSolverConfig(pydantic.BaseModel):
-    llm_model: typing.Literal["gpt-4o", "gpt-4o-mini", "o3-mini-low", "o3-mini-medium", "o3-mini-high", "ollama:llama3.2:8b"]
+    llm_model: typing.Literal["gpt-4o", "gpt-4o-mini", "o3-mini-low", "o3-mini-medium", "o3-mini-high", "ollama:llama3.1:8b",  "ollama:phi4:14b", "ollama:qwq:32b"]
     max_trials: int
 
 class ConfidentSolver:
@@ -37,7 +37,7 @@ class ConfidentSolver:
                 model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
             )
-        elif llm_model in ["ollama:llama3.2:8b"]:
+        elif llm_model in ["ollama:llama3.1:8b", "ollama:phi4:14b", "ollama:qwq:32b"]:
             llm = langchain_ollama.ChatOllama(
                 model=llm_model.split(":", 1)[-1],
             )
