@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.1.8",
+    version="0.1.9-prealpha-20250307",
     packages=find_packages('consol'),
     install_requires=[
         'python-dotenv',
@@ -10,6 +10,7 @@ setup(
         'pandas',
         'langchain>=0.3.14',
         'langchain-openai>=0.3.3',
+        'langchain-openai>=0.2.2',
     ],
     entry_points={
         'console_scripts': [
