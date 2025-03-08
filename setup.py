@@ -2,15 +2,15 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.1.9-alpha",
-    packages=find_packages('consol'),
+    version="0.1.14",
+    packages=find_packages(),
     install_requires=[
         'python-dotenv',
         'scipy',
         'pandas',
         'langchain>=0.3.14',
         'langchain-openai>=0.3.3',
-        'langchain-openai>=0.2.2',
+        'langchain-ollama>=0.2.2',
     ],
     entry_points={
         'console_scripts': [
