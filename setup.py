@@ -9,8 +9,8 @@ setup(
         'scipy',
         'pandas',
         'langchain>=0.3.14',
-        'langchain-openai>=0.3.3',
-        'langchain-ollama>=0.2.2',
+        'langchain-openai>=0.2.2',
+        'langchain-ollama>=0.2.3'
     ],
     entry_points={
         'console_scripts': [
