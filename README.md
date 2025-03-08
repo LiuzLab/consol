@@ -25,12 +25,12 @@ from consol import ConfidentSolver
 
 # Initialize the ConfidentSolver with the following parameters:
 # llm_model: The language model to use, e.g., "gpt-4o-mini", "o3-mini-low".
-# confidence_model: The statistical model to determine confidence, e.g., "pvalue", "sprt", "bayesian".
-# output_schema: The format of the output, e.g., "reasoned_float", "float".
+# confidence_model: The statistical model to determine confidence, e.g., "msprt", "sprt", "pvalue", "bayesianposterior", "vote".
+# output_schema: The format of the output, e.g., "abced", "float".
 consol = ConfidentSolver(
     llm_model="gpt-4o-mini",
     confidence_model="pvalue",
-    output_schema="reasoned_float",
+    output_schema="float",
 )
 answer = consol.invoke("1 + 1 = ?")
 print(answer)
