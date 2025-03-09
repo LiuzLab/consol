@@ -104,7 +104,7 @@ class ConfidentSolver:
                 if trials == 0:
                     pbar.close()
                     break
-                raw_outputs = self._collect_raw_outputs(messages, trials, input, **kwargs)
+                raw_outputs = self._collect_raw_outputs(messages, trials, **kwargs)
                 total_raw_outputs += raw_outputs
                 pbar.update(trials)
         df = self._create_dataframe(total_raw_outputs)
@@ -134,7 +134,7 @@ class ConfidentSolver:
             trials = max_trials - current_trials
         return trials
 
-    def _collect_raw_outputs(self, messages, trials, input, **kwargs):
+    def _collect_raw_outputs(self, messages, trials, **kwargs):
         raw_outputs = []
         while len(raw_outputs) < trials:
             try:
@@ -143,7 +143,7 @@ class ConfidentSolver:
                 partial_raw_outputs = [x for x in partial_raw_outputs if x['parsed']]
                 raw_outputs += partial_raw_outputs
             except Exception as e:
-                print(f"Unknown error during trial {len(raw_outputs)}/{trials} with input: {input}", e, file=sys.stderr)
+                print(f"Unknown error during trial {len(raw_outputs)}/{trials} with input: {messages[0].content}", e, file=sys.stderr)
                 continue
         return raw_outputs
 
