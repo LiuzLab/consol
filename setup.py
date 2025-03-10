@@ -10,7 +10,8 @@ setup(
         'pandas',
         'langchain>=0.3.14',
         'langchain-openai>=0.2.2',
-        'langchain-ollama>=0.2.3'
+        'langchain-ollama>=0.2.3',
+        'google-ai-generativelanguage>=0.6.15'
     ],
     entry_points={
         'console_scripts': [
