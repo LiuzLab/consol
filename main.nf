@@ -16,7 +16,7 @@ process JSONL_TO_CSV {
     import typing
     import json
 
-    def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa']) -> pd.DataFrame:
+    def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'simple_bench_public']) -> pd.DataFrame:
         if name == 'aime24':
             df = pd.read_parquet("hf://datasets/Maxwell-Jia/AIME_2024/aime_2024_problems.parquet")
             df = df.rename(columns={'Problem': 'input', 'Answer': 'target'})
