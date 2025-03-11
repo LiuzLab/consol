@@ -12,4 +12,4 @@ class FloatOutput(AbstractOutput):
     answer: float
 
 class ABCDEOutput(AbstractOutput):
-    answer: typing.Literal["A", "B", "C", "D", "E"]
+    answer: typing.Literal["A", "B", "C", "D", "E", "F"]
