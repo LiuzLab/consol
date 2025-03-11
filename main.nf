@@ -1,7 +1,7 @@
-params.input = "medqa"
-params.publishDirSuffix = ""
+params.input = "simple_bench_public"
+params.publishDirSuffix = "test"
 params.llm_model = "o3-mini-low"
-params.confidence_model = "bayesian"
+params.confidence_model = "sprt"
 
 process JSONL_TO_CSV {
     output:
@@ -12,6 +12,7 @@ process JSONL_TO_CSV {
     import pandas as pd
     import sys
     import typing
+    import json
 
     def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa']) -> pd.DataFrame:
         if name == 'aime24':
@@ -47,8 +48,18 @@ process JSONL_TO_CSV {
             })
 
             return df
+        elif name == 'simple_bench_public':
+            with open('${projectDir}/resources/data/simple_bench_public.json', "r") as f:
+                data = json.load(f)
+            df = pd.DataFrame(data["eval_data"])
+            df = pd.DataFrame({
+                "input": df['prompt'],
+                "target": df['answer']
+            })
 
-        raise ValueError("Unknown dataset")
+            return df
+        else:
+            raise ValueError("Unknown dataset")
 
     df = load_dataset('${params.input}').reset_index()
     # Escape to avoid CSV misinterpretation from Nextflow.
