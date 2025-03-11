@@ -78,33 +78,34 @@ class ConfidentSolver:
             raise ValueError(f"Unknown Output Schema: {output_schema}")
 
         if llm_model in [LlmModelEnum.O3_MINI_LOW, LlmModelEnum.O3_MINI_MEDIUM, LlmModelEnum.O3_MINI_HIGH]:
-            self.llm = langchain_openai.ChatOpenAI(
+            llm = langchain_openai.ChatOpenAI(
                 model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
             )
         elif llm_model in [LlmModelEnum.GPT_4O, LlmModelEnum.GPT_4O_MINI]:
-            self.llm = langchain_openai.ChatOpenAI(
+            llm = langchain_openai.ChatOpenAI(
                 model=llm_model,
             )
             output_schema = type("ReasonedOutputSchema", (output_schema, ReasonedMixin), {})
         elif llm_model in [LlmModelEnum.OLLAMA_LLAMA3_1_8B]:
-            self.llm = langchain_ollama.ChatOllama(
+            llm = langchain_ollama.ChatOllama(
                 model=llm_model.split(":", 1)[-1],
             )
             output_schema = type("ReasonedOutputSchema", (output_schema, ReasonedMixin), {})
         elif llm_model in [LlmModelEnum.OLLAMA_QWQ_32B]:
-            self.llm = langchain_ollama.ChatOllama(
-                model=llm_model.split(":", 1)[-1],    
+            llm = langchain_ollama.ChatOllama(
+                model=llm_model.split(":", 1)[-1],
+                num_ctx=32000,
             )
         elif llm_model in [LlmModelEnum.GEMINI_2_0_FLASH, LlmModelEnum.GEMINI_2_0_FLASH_LITE]:
-            self.llm = langchain_google_genai.ChatGoogleGenerativeAI(
+            llm = langchain_google_genai.ChatGoogleGenerativeAI(
                 model=llm_model
             )
             output_schema = type("ReasonedOutputSchema", (output_schema, ReasonedMixin), {})
         else:
             raise ValueError(f"Unknown Model: {llm_model}")
 
-        self.llm_with_structured_output = self.llm.with_structured_output(output_schema, include_raw=True)
+        self.llm_with_structured_output = llm.with_structured_output(output_schema, include_raw=True)
 
 
     def invoke(self, input, debug=False, **kwargs):
@@ -162,13 +163,13 @@ class ConfidentSolver:
         return raw_outputs
 
     def _create_dataframe(self, total_raw_outputs):
-        llm_type = type(self.llm)
+        llm_model = self.config.llm_model
         token_usage = None
-        if llm_type == langchain_openai.ChatOpenAI:
-            token_usage = [x['raw'].usage.completion_tokens for x in total_raw_outputs]
+        if llm_model in [LlmModelEnum.GPT_4O, LlmModelEnum.GPT_4O_MINI, LlmModelEnum.O3_MINI_HIGH, LlmModelEnum.O3_MINI_MEDIUM, LlmModelEnum.O3_MINI_LOW]:
+            token_usage = [x['raw'].response_metadata['token_usage']['completion_tokens'] for x in total_raw_outputs]
         else:
             token_usage = [x['raw'].usage_metadata['total_tokens'] for x in total_raw_outputs]
-        
+
         return pd.DataFrame({
             'answer': [x['parsed'].answer for x in total_raw_outputs],
             'token_usage': token_usage,

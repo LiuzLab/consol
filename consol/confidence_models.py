@@ -100,21 +100,21 @@ class MsprtConfidenceModel(AbstractConfidenceModel):
         logB = np.log(beta / (1 - alpha))
 
         # Under the null hypothesis (H0), assume p = 0.5 for all trials.
-        likelihood_H0 = 0.5 ** (first + second)
+        log_likelihood_H0 = np.log(0.5) * (first + second)
 
         # Compute the normalization constant for the truncated prior.
         norm = 1 - scipy.special.betainc(priori_alpha, priori_beta, 0.5)
 
         # Compute the integral (in closed form) using the Beta function and the
         # regularized incomplete Beta function.
-        numerator = scipy.special.beta(first + priori_alpha, second + priori_beta) * \
-                    (1 - scipy.special.betainc(first + priori_alpha, second + priori_beta, 0.5))
+        log_numerator = scipy.special.betaln(first + priori_alpha, second + priori_beta) + \
+                    np.log(1 - scipy.special.betainc(first + priori_alpha, second + priori_beta, 0.5))
 
-        likelihood_H1 = numerator / (scipy.special.beta(priori_alpha, priori_beta) * norm)
+        log_likelihood_H1 = log_numerator - np.log(scipy.special.beta(priori_alpha, priori_beta) * norm)
 
         # The Bayes factor K is the ratio of the likelihoods:
         #   K = P(data|H1) / P(data|H0)
-        logLR = np.log(likelihood_H1 / likelihood_H0)
+        logLR = log_likelihood_H1 - log_likelihood_H0
 
         if logLR >= logA:
             return True
