@@ -11,5 +11,5 @@ class ReasonedMixin(abc.ABC):
 class FloatOutput(AbstractOutput):
     answer: float
 
-class ABCDEOutput(AbstractOutput):
+class ABCDEFOutput(AbstractOutput):
     answer: typing.Literal["A", "B", "C", "D", "E", "F"]

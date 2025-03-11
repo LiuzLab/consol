@@ -1,8 +1,8 @@
 params.input = "simple_bench_public"
-params.publishDirSuffix = "test"
+params.publishDirSuffix = ""
 params.llm_model = "o3-mini-low"
 params.confidence_model = "sprt"
-params.output_type = "abcde"
+params.output_type = "abcdef"
 
 
 process JSONL_TO_CSV {
@@ -51,9 +51,7 @@ process JSONL_TO_CSV {
 
             return df
         elif name == 'simple_bench_public':
-            with open('${projectDir}/resources/data/simple_bench_public.json', "r") as f:
-                data = json.load(f)
-            df = pd.DataFrame(data["eval_data"])
+            df = pd.json_normalize(pd.read_json("${projectDir}/resources/data/simple_bench_public.json")["eval_data"])
             df = pd.DataFrame({
                 "input": df['prompt'],
                 "target": df['answer']
