@@ -165,7 +165,7 @@ class ConfidentSolver:
         llm_type = type(self.llm)
         token_usage = None
         if llm_type == langchain_openai.ChatOpenAI:
-            token_usage = [x['raw'].usage.completion_tokens for x in total_raw_outputs]
+            token_usage = [x['raw'].response_metadata['token_usage']['completion_tokens'] for x in total_raw_outputs]
         else:
             token_usage = [x['raw'].usage_metadata['total_tokens'] for x in total_raw_outputs]
         
