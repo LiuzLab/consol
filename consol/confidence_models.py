@@ -19,9 +19,9 @@ class SprtConfidenceModelConfig(pydantic.BaseModel):
 class SprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
-        p1 = 0.6,
+        p1 = 0.55,
         alpha = 0.05,
-        beta = 0.1,
+        beta = 0.925,
     ):
         self.config = SprtConfidenceModelConfig(
             p1 = p1,
@@ -45,19 +45,22 @@ class SprtConfidenceModel(AbstractConfidenceModel):
 
 
 class MsprtConfidenceModelConfig(pydantic.BaseModel):
-    priori: typing.Literal["jeffreys", "uniform"]
+    priori_alpha: float
+    priori_beta: float
     alpha: float
     beta: float
 
 class MsprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
-        priori = "uniform",
+        priori_alpha=64,
+        priori_beta=64,
         alpha = 0.05,
-        beta = 0.1,
+        beta = 0.932,
     ):
         self.config = MsprtConfidenceModelConfig(
-            priori = priori,
+            priori_alpha = priori_alpha,
+            priori_beta = priori_beta,
             alpha = alpha,
             beta = beta,
         )
@@ -86,35 +89,27 @@ class MsprtConfidenceModel(AbstractConfidenceModel):
               P(data|H1) = [ B(first+a, second+b) * (1 - I_{0.5}(first+a, second+b)) ]
                            / [ B(a, b) * (1 - I_{0.5}(a, b)) ]
         """
-        priori, alpha, beta = self.config.priori, self.config.alpha, self.config.beta
-
-        if priori == "uniform":
-            priori_alpha, priori_beta = 1, 1
-        elif priori == "jeffreys":
-            priori_alpha, priori_beta = 0.5, 0.5
-        else:
-            raise ValueError("Invalid priori")
-
+        priori_alpha, priori_beta, alpha, beta = self.config.priori_alpha, self.config.priori_beta, self.config.alpha, self.config.beta
 
         logA = np.log((1 - beta) / alpha)
         logB = np.log(beta / (1 - alpha))
 
         # Under the null hypothesis (H0), assume p = 0.5 for all trials.
-        likelihood_H0 = 0.5 ** (first + second)
+        log_likelihood_H0 = np.log(0.5) * (first + second)
 
         # Compute the normalization constant for the truncated prior.
         norm = 1 - scipy.special.betainc(priori_alpha, priori_beta, 0.5)
 
         # Compute the integral (in closed form) using the Beta function and the
         # regularized incomplete Beta function.
-        numerator = scipy.special.beta(first + priori_alpha, second + priori_beta) * \
-                    (1 - scipy.special.betainc(first + priori_alpha, second + priori_beta, 0.5))
+        log_numerator = scipy.special.betaln(first + priori_alpha, second + priori_beta) + \
+                    np.log(1 - scipy.special.betainc(first + priori_alpha, second + priori_beta, 0.5))
 
-        likelihood_H1 = numerator / (scipy.special.beta(priori_alpha, priori_beta) * norm)
+        log_likelihood_H1 = log_numerator - np.log(scipy.special.beta(priori_alpha, priori_beta) * norm)
 
         # The Bayes factor K is the ratio of the likelihoods:
         #   K = P(data|H1) / P(data|H0)
-        logLR = np.log(likelihood_H1 / likelihood_H0)
+        logLR = log_likelihood_H1 - log_likelihood_H0
 
         if logLR >= logA:
             return True
