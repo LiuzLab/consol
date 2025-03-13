@@ -10,7 +10,7 @@ import langchain_core
 import tqdm.auto
 import pandas as pd
 
-from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEOutput
+from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEFOutput
 from .confidence_models import AbstractConfidenceModel, MsprtConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianPosteriorConfidenceModel, VoteConfidenceModel
 
 class LlmModelEnum(enum.StrEnum):
@@ -71,7 +71,7 @@ class ConfidentSolver:
         if output_schema == OutputTypeEnum.Float:
             output_schema = FloatOutput
         elif output_schema == OutputTypeEnum.Abcde:
-            output_schema = ABCDEOutput
+            output_schema = ABCDEFOutput
         elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
             pass
         else:
