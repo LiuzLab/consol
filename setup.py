@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.2.2",
+    version="0.2.3",
     packages=find_packages(),
     install_requires=[
         'python-dotenv',
@@ -11,7 +11,7 @@ setup(
         'langchain>=0.3.14',
         'langchain-openai>=0.2.2',
         'langchain-ollama>=0.2.3',
-        'langchain-genai>=2.1.0',
+        'langchain-google-genai>=2.1.0',
     ],
     entry_points={
         'console_scripts': [
