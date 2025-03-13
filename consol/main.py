@@ -12,7 +12,7 @@ def main():
     parser.add_argument("--llm_model", default=LlmModelEnum.GPT_4O_MINI, choices=[_.value for _ in LlmModelEnum])
     parser.add_argument("--confidence_model", default=ConfidenceModelEnum.Msprt, choices=[_.value for _ in ConfidenceModelEnum])
     parser.add_argument("--output_type", default=OutputTypeEnum.Float, choices=[_.value for _ in OutputTypeEnum])
-    parser.add_argument("--max_trial", type=int, default=40)
+    parser.add_argument("--max_trials", type=int, default=40)
     parser.add_argument("--debug", action="store_true")
 
     args = parser.parse_args()
@@ -21,7 +21,7 @@ def main():
         llm_model=args.llm_model,
         confidence_model=args.confidence_model,
         output_schema=args.output_type,
-        max_trials=args.max_trial,
+        max_trials=args.max_trials,
     )
     res = consol.invoke(args.prompt, debug=args.debug)
     if args.debug:

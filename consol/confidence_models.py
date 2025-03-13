@@ -19,9 +19,9 @@ class SprtConfidenceModelConfig(pydantic.BaseModel):
 class SprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
-        p1 = 0.55,
+        p1 = 0.51,
         alpha = 0.05,
-        beta = 0.925,
+        beta = 0.947,
     ):
         self.config = SprtConfidenceModelConfig(
             p1 = p1,
@@ -53,10 +53,10 @@ class MsprtConfidenceModelConfig(pydantic.BaseModel):
 class MsprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
-        priori_alpha=64,
-        priori_beta=64,
+        priori_alpha=256,
+        priori_beta=256,
         alpha = 0.05,
-        beta = 0.932,
+        beta = 0.9446,
     ):
         self.config = MsprtConfidenceModelConfig(
             priori_alpha = priori_alpha,
