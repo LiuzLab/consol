@@ -1,7 +1,10 @@
-params.input = "medqa"
-params.publishDirSuffix = ""
-params.llm_model = "o3-mini-low"
-params.confidence_model = "bayesian"
+params.input = "medqa_hard"
+params.max_trial = 10
+params.confidence_model = "vote"
+params.llm_model = "o3-mini-medium"
+params.publishDirSuffix = "${params.input}/${params.llm_model}_${params.confidence_model}_${params.max_trial}/"
+
+
 
 process JSONL_TO_CSV {
     output:
@@ -13,7 +16,7 @@ process JSONL_TO_CSV {
     import sys
     import typing
 
-    def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa']) -> pd.DataFrame:
+    def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa_hard', 'medqa']) -> pd.DataFrame:
         if name == 'aime24':
             df = pd.read_parquet("hf://datasets/Maxwell-Jia/AIME_2024/aime_2024_problems.parquet")
             df = df.rename(columns={'Problem': 'input', 'Answer': 'target'})
@@ -24,6 +27,9 @@ process JSONL_TO_CSV {
             return df
         elif name == 'gsm':
             df = pd.read_json('${projectDir}/resources/data/gsm.jsonl', lines=True)
+            return df
+        elif name == 'medqa_hard':
+            df = pd.read_json('${projectDir}/resources/data/medqa_hard.json')
             return df
         elif name == 'medqa':
             df = pd.read_json('${projectDir}/resources/data/medqa.jsonl', lines=True)
@@ -73,7 +79,7 @@ process CONSOL {
     def safe_input = input.replace("\$", "\\\$")
     """
     #!/usr/bin/env bash
-    consol --prompt "$safe_input" --debug --llm_model ${params.llm_model} --confidence_model ${params.confidence_model} > ${id}.csv
+    consol --prompt "$safe_input" --debug --llm_model ${params.llm_model} --confidence_model ${params.confidence_model} --max_trial ${params.max_trial} > ${id}.csv
     """
 }
 
