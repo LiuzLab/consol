@@ -29,7 +29,6 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
     elif name == 'medqa':
         df = pd.read_json('${projectDir}/resources/data/medqa.jsonl', lines=True)
         letter_to_number = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5}
-
         sorted_keys = list("ABCDE")
         formatted_options = ['\\n'.join([str(i+1)+". " +x[key] for i, key in enumerate(sorted_keys)]) for x in df['options']]
 
@@ -46,11 +45,14 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
             "input": formatted_question,
             "target": answer_number
         })
+            df = pd.DataFrame({
+                "input": formatted_question,
+                "target": answer_number
+            })
 
         return df
 
     elif name == 'gpqa_diamond':
-
         SEED = 42
         random.seed(SEED)
 
