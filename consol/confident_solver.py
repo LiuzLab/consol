@@ -30,7 +30,8 @@ class ConfidenceModelEnum(enum.StrEnum):
     Sprt = "sprt"
     Pvalue = "pvalue"
     BayesianPosterior = "bayesian_posterior"
-    Vote = "vote"
+    Vote40 = "vote40"
+    Vote1 = "vote1"
 
 class OutputTypeEnum(enum.StrEnum):
     Float = "float"
@@ -38,7 +39,6 @@ class OutputTypeEnum(enum.StrEnum):
 
 class ConfidentSolverConfig(pydantic.BaseModel):
     llm_model: LlmModelEnum
-    max_trials: typing.Optional[int]
 
 class ConfidentSolver:
     def __init__(
@@ -46,11 +46,9 @@ class ConfidentSolver:
         llm_model: LlmModelEnum,
         confidence_model: typing.Union[ConfidenceModelEnum, AbstractConfidenceModel],
         output_schema: typing.Union[OutputTypeEnum, AbstractOutput],
-        max_trials: typing.Optional[int],
     ):
         self.config = ConfidentSolverConfig(
             llm_model=llm_model,
-            max_trials=max_trials,
         )
 
         if confidence_model == ConfidenceModelEnum.Msprt:
@@ -61,8 +59,10 @@ class ConfidentSolver:
             self.confidence_model = PValueConfidenceModel()
         elif confidence_model == ConfidenceModelEnum.BayesianPosterior:
             self.confidence_model = BayesianPosteriorConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.Vote:
+        elif confidence_model == ConfidenceModelEnum.Vote40:
             self.confidence_model = VoteConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.Vote1:
+            self.confidence_model = VoteConfidenceModel(max_trials=1)
         elif isinstance(confidence_model, AbstractConfidenceModel):
             self.confidence_model = confidence_model
         else:
@@ -110,7 +110,7 @@ class ConfidentSolver:
 
     def invoke(self, input, debug=False, **kwargs):
         messages = self._prepare_messages(input)
-        max_trials = self.config.max_trials
+        max_trials = self.confidence_model.config.max_trials
         total_raw_outputs = []
         with tqdm.auto.tqdm(total=max_trials) as pbar:
             while True:

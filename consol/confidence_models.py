@@ -6,12 +6,15 @@ import scipy.stats
 import scipy.special
 import pydantic
 
+class AbstractConfidenceModelConfig(abc.ABC, pydantic.BaseModel):
+    max_trials: int
+
 class AbstractConfidenceModel(abc.ABC):
     @abc.abstractmethod
     def test(self, first: int, second: int) -> bool:
         pass
 
-class SprtConfidenceModelConfig(pydantic.BaseModel):
+class SprtConfidenceModelConfig(AbstractConfidenceModelConfig):
     p1: float
     alpha: float
     beta: float
@@ -19,11 +22,13 @@ class SprtConfidenceModelConfig(pydantic.BaseModel):
 class SprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
+        max_trials=256,
         p1 = 0.51,
         alpha = 0.05,
         beta = 0.947,
     ):
         self.config = SprtConfidenceModelConfig(
+            max_trials = max_trials,
             p1 = p1,
             alpha = alpha,
             beta = beta,
@@ -44,7 +49,7 @@ class SprtConfidenceModel(AbstractConfidenceModel):
         return False
 
 
-class MsprtConfidenceModelConfig(pydantic.BaseModel):
+class MsprtConfidenceModelConfig(AbstractConfidenceModelConfig):
     priori_alpha: float
     priori_beta: float
     alpha: float
@@ -53,12 +58,14 @@ class MsprtConfidenceModelConfig(pydantic.BaseModel):
 class MsprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
+        max_trials=256,
         priori_alpha=256,
         priori_beta=256,
         alpha = 0.05,
         beta = 0.9446,
     ):
         self.config = MsprtConfidenceModelConfig(
+            max_trials=max_trials,
             priori_alpha = priori_alpha,
             priori_beta = priori_beta,
             alpha = alpha,
@@ -119,12 +126,19 @@ class MsprtConfidenceModel(AbstractConfidenceModel):
         return False
 
 
-class PvalueConfidenceModelConfig(pydantic.BaseModel):
+class PvalueConfidenceModelConfig(AbstractConfidenceModelConfig):
     pvalue_threshold: float
 
 class PValueConfidenceModel(AbstractConfidenceModel):
-    def __init__(self, pvalue_threshold = 0.05):
-        self.config = PvalueConfidenceModelConfig(pvalue_threshold=pvalue_threshold)
+    def __init__(
+        self,
+        max_trials=40,
+        pvalue_threshold = 0.05
+    ):
+        self.config = PvalueConfidenceModelConfig(
+            max_trials=max_trials,
+            pvalue_threshold=pvalue_threshold
+        )
 
     def test(self, first, second) -> bool:
         pvalue_threshold = self.config.pvalue_threshold
@@ -134,13 +148,19 @@ class PValueConfidenceModel(AbstractConfidenceModel):
         return False
 
 
-class BayesianPosteriorConfidenceModelConfig(pydantic.BaseModel):
+class BayesianPosteriorConfidenceModelConfig(AbstractConfidenceModelConfig):
     confidence_threshold: float
     priori: typing.Literal["jeffreys", "uniform"]
 
 class BayesianPosteriorConfidenceModel(AbstractConfidenceModel):
-    def __init__(self, confidence_threshold = 0.95, priori = "uniform"):
+    def __init__(
+        self,
+        max_trials=40,
+        confidence_threshold = 0.95,
+        priori = "uniform"
+    ):
         self.config = BayesianPosteriorConfidenceModelConfig(
+            max_trials=max_trials,
             confidence_threshold = confidence_threshold,
             priori = priori,
         )
@@ -158,7 +178,17 @@ class BayesianPosteriorConfidenceModel(AbstractConfidenceModel):
             return True
         return False
 
+class VoteConfidenceModelConfig(AbstractConfidenceModelConfig):
+    pass
+
 class VoteConfidenceModel(AbstractConfidenceModel):
+    def __init__(
+        self,
+        max_trials=40,
+    ):
+        self.config = VoteConfidenceModelConfig(
+            max_trials=max_trials
+        )
     def test(self, first, second) -> bool:
         _ = first, second  # Avoid linting error for unused arguments
         return False
