@@ -45,10 +45,6 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
             "input": formatted_question,
             "target": answer_number
         })
-            df = pd.DataFrame({
-                "input": formatted_question,
-                "target": answer_number
-            })
 
         return df
 
@@ -57,7 +53,7 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
         random.seed(SEED)
 
         df = pd.read_csv("${projectDir}/resources/data/gpqa_diamond.csv")
-        
+
         answer_columns = [
             "Pre-Revision Correct Answer",
             "Pre-Revision Incorrect Answer 1",
