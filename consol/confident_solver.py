@@ -166,12 +166,7 @@ class ConfidentSolver:
         return raw_outputs
 
     def _create_dataframe(self, total_raw_outputs):
-        llm_model = self.config.llm_model
-        token_usage = None
-        if llm_model in [LlmModelEnum.GPT_4O, LlmModelEnum.GPT_4O_MINI, LlmModelEnum.O3_MINI_HIGH, LlmModelEnum.O3_MINI_MEDIUM, LlmModelEnum.O3_MINI_LOW]:
-            token_usage = [x['raw'].response_metadata['token_usage']['completion_tokens'] for x in total_raw_outputs]
-        else:
-            token_usage = [x['raw'].usage_metadata['total_tokens'] for x in total_raw_outputs]
+        token_usage = [x['raw'].usage_metadata['output_tokens'] for x in total_raw_outputs]
 
         return pd.DataFrame({
             'answer': [x['parsed'].answer for x in total_raw_outputs],
