@@ -115,7 +115,7 @@ process CONSOL {
     def safe_input = input.replace("\$", "\\\$")
     """
     #!/usr/bin/env bash
-    consol --prompt "$safe_input" --debug --output_type abcdef --max_trials 10 --llm_model ${params.llm_model} --confidence_model ${params.confidence_model} > ${id}.csv
+    consol --prompt "$safe_input" --debug --output_type abcdef --llm_model ${params.llm_model} --confidence_model ${params.confidence_model} > ${id}.csv
     """
 }
 
