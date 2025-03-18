@@ -10,7 +10,7 @@ import langchain_core
 import tqdm.auto
 import pandas as pd
 
-from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEFOutput
+from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEFOutput,YesNoOutput
 from .confidence_models import AbstractConfidenceModel, MsprtConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianPosteriorConfidenceModel, VoteConfidenceModel
 
 class LlmModelEnum(enum.StrEnum):
@@ -35,6 +35,7 @@ class ConfidenceModelEnum(enum.StrEnum):
 class OutputTypeEnum(enum.StrEnum):
     Float = "float"
     Abcdef = "abcdef"
+    YesNo = "yesno"
 
 class ConfidentSolverConfig(pydantic.BaseModel):
     llm_model: LlmModelEnum
@@ -72,6 +73,8 @@ class ConfidentSolver:
             output_schema = FloatOutput
         elif output_schema == OutputTypeEnum.Abcdef:
             output_schema = ABCDEFOutput
+        elif output_schema == OutputTypeEnum.YesNo:
+            output_schema = YesNoOutput
         elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
             pass
         else:
@@ -81,8 +84,6 @@ class ConfidentSolver:
             llm = langchain_openai.ChatOpenAI(
                 model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
-            )
-        elif llm_model in [LlmModelEnum.GPT_4O, LlmModelEnum.GPT_4O_MINI]:
             llm = langchain_openai.ChatOpenAI(
                 model=llm_model,
             )
