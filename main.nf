@@ -48,17 +48,55 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
 
         return df
 
-    elif name == 'gpqa_diamond':
+    elif name == 'gpqa_diamond_yesno':
+
+        df = pd.read_csv("${projectDir}/resources/data/gpqa_diamond.csv")
+        
+        answer_columns = [
+            "Correct Answer",
+            "Incorrect Answer 1",
+            "Incorrect Answer 2",
+            "Incorrect Answer 3"
+        ]
+
+        options_labels = ["A", "B", "C", "D"]
+
+        formatted_questions = []
+        labels = []
+
+        for _, row in df.iterrows():
+        
+            shuffled_columns = random.sample(answer_columns, len(answer_columns))
+            shuffled_options = {opt: row[col] for opt, col in zip(options_labels, shuffled_columns)}
+
+            for opt in options_labels:
+                question_text = f"Question: {row['Question']}\\n"
+                choice_text = f"Is the following answer correct?\\n Answer: {shuffled_options[opt]}"
+                prompt_text = f"{question_text}{choice_text}"
+                
+                is_correct = "Yes" if shuffled_columns[options_labels.index(opt)] == "Correct Answer" else "No"
+
+                formatted_questions.append(prompt_text)
+                labels.append(is_correct)
+
+        gpqa_df = pd.DataFrame({
+            "input": formatted_questions,
+            "target": labels
+        })
+
+        return gpqa_df
+
+    elif name == 'gpqa_diamond_multi_choice':
         SEED = 42
         random.seed(SEED)
 
         df = pd.read_csv("${projectDir}/resources/data/gpqa_diamond.csv")
 
         answer_columns = [
-            "Pre-Revision Correct Answer",
-            "Pre-Revision Incorrect Answer 1",
-            "Pre-Revision Incorrect Answer 2",
-            "Pre-Revision Incorrect Answer 3"
+            "Correct Answer",
+            "Incorrect Answer 1",
+            "Incorrect Answer 2",
+            "Incorrect Answer 3"
         ]
 
         options_labels = ["A", "B", "C", "D"]
@@ -72,11 +110,11 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
 
             shuffled_options = {opt: row[col] for opt, col in zip(options_labels, shuffled_columns)}
 
-            question_text = f"Question: {row['Pre-Revision Question']}\\n"
+            question_text = f"Question: {row['Question']}\\n"
             choices_text = "\\n".join([f"{opt}. {shuffled_options[opt]}" for opt in options_labels])
             prompt_text = f"{question_text}{choices_text}"
 
-            correct_option = [opt for opt, col in zip(options_labels, shuffled_columns) if col == "Pre-Revision Correct Answer"][0]
+            correct_option = [opt for opt, col in zip(options_labels, shuffled_columns) if col == "Correct Answer"][0]
 
             formatted_questions.append(prompt_text)
             correct_answers.append(correct_option)
@@ -90,7 +128,7 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
 
 df = load_dataset('${params.input}').reset_index()
 # Escape to avoid CSV misinterpretation from Nextflow.
-df['input'] = df.input.apply(lambda x: x.replace('\\n', '<br/>').replace('"', "&quot;"))
+df['input'] = df.input.apply(lambda x: x.replace('\\n', '<br/>').replace('"', "&quot;").replace('`', "&grave;"))
 print(df.to_csv(index=False))
     """
 }

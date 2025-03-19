@@ -13,6 +13,9 @@ class FloatOutput(AbstractOutput):
 
 class ABCDEFOutput(AbstractOutput):
     answer: typing.Literal["A", "B", "C", "D", "E", "F"]
-
+    
 class ABCDOutput(AbstractOutput):
     answer: typing.Literal["A", "B", "C", "D"]
+
+class YesNoOutput(AbstractOutput):
+    answer: typing.Literal["Yes", "No"]
