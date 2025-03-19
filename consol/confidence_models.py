@@ -59,13 +59,15 @@ class MsprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
         max_trials=256,
-        priori_alpha=256,
-        priori_beta=256,
+        priori_alpha=1e6,
+        priori_beta=1e6,
         alpha = 0.05,
-        beta = 0.9446,
+        # beta = 1-.95-.00009,
+        beta = 1-.95-.00006,
+        # beta = 1-.95-.00003,
     ):
         self.config = MsprtConfidenceModelConfig(
-            max_trials=max_trials,
+            max_trials = max_trials,
             priori_alpha = priori_alpha,
             priori_beta = priori_beta,
             alpha = alpha,
@@ -112,7 +114,7 @@ class MsprtConfidenceModel(AbstractConfidenceModel):
         log_numerator = scipy.special.betaln(first + priori_alpha, second + priori_beta) + \
                     np.log(1 - scipy.special.betainc(first + priori_alpha, second + priori_beta, 0.5))
 
-        log_likelihood_H1 = log_numerator - np.log(scipy.special.beta(priori_alpha, priori_beta) * norm)
+        log_likelihood_H1 = log_numerator - scipy.special.betaln(priori_alpha, priori_beta) - np.log(norm)
 
         # The Bayes factor K is the ratio of the likelihoods:
         #   K = P(data|H1) / P(data|H0)
