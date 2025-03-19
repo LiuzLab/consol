@@ -23,9 +23,11 @@ class SprtConfidenceModel(AbstractConfidenceModel):
     def __init__(
         self,
         max_trials=256,
-        p1 = 0.51,
+        p1 = 0.5001,
         alpha = 0.05,
-        beta = 0.947,
+        # beta = 1-.05-.000018,
+        beta = 1-.05-.000024,
+        # beta = 1-.05-.000030,
     ):
         self.config = SprtConfidenceModelConfig(
             max_trials = max_trials,
