@@ -87,6 +87,8 @@ class ConfidentSolver:
             llm = langchain_openai.ChatOpenAI(
                 model="o3-mini",
                 reasoning_effort=llm_model.split("-")[-1],
+            )
+        elif llm_model in [LlmModelEnum.GPT_4O, LlmModelEnum.GPT_4O_MINI]:
             llm = langchain_openai.ChatOpenAI(
                 model=llm_model,
             )
