@@ -10,7 +10,7 @@ import langchain_core
 import tqdm.auto
 import pandas as pd
 
-from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEFOutput,YesNoOutput
+from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEFOutput, ABCDOutput, YesNoOutput
 from .confidence_models import AbstractConfidenceModel, MsprtConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianPosteriorConfidenceModel, VoteConfidenceModel
 
 class LlmModelEnum(enum.StrEnum):
@@ -30,16 +30,17 @@ class ConfidenceModelEnum(enum.StrEnum):
     Sprt = "sprt"
     Pvalue = "pvalue"
     BayesianPosterior = "bayesian_posterior"
-    Vote = "vote"
+    Vote40 = "vote40"
+    Vote1 = "vote1"
 
 class OutputTypeEnum(enum.StrEnum):
     Float = "float"
     Abcdef = "abcdef"
     YesNo = "yesno"
+    Abcd = "abcd"
 
 class ConfidentSolverConfig(pydantic.BaseModel):
     llm_model: LlmModelEnum
-    max_trials: typing.Optional[int]
 
 class ConfidentSolver:
     def __init__(
@@ -47,11 +48,9 @@ class ConfidentSolver:
         llm_model: LlmModelEnum,
         confidence_model: typing.Union[ConfidenceModelEnum, AbstractConfidenceModel],
         output_schema: typing.Union[OutputTypeEnum, AbstractOutput],
-        max_trials: typing.Optional[int],
     ):
         self.config = ConfidentSolverConfig(
             llm_model=llm_model,
-            max_trials=max_trials,
         )
 
         if confidence_model == ConfidenceModelEnum.Msprt:
@@ -62,8 +61,10 @@ class ConfidentSolver:
             self.confidence_model = PValueConfidenceModel()
         elif confidence_model == ConfidenceModelEnum.BayesianPosterior:
             self.confidence_model = BayesianPosteriorConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.Vote:
+        elif confidence_model == ConfidenceModelEnum.Vote40:
             self.confidence_model = VoteConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.Vote1:
+            self.confidence_model = VoteConfidenceModel(max_trials=1)
         elif isinstance(confidence_model, AbstractConfidenceModel):
             self.confidence_model = confidence_model
         else:
@@ -75,6 +76,8 @@ class ConfidentSolver:
             output_schema = ABCDEFOutput
         elif output_schema == OutputTypeEnum.YesNo:
             output_schema = YesNoOutput
+        elif output_schema == OutputTypeEnum.Abcd:
+            output_schema = ABCDOutput
         elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
             pass
         else:
@@ -111,7 +114,7 @@ class ConfidentSolver:
 
     def invoke(self, input, debug=False, **kwargs):
         messages = self._prepare_messages(input)
-        max_trials = self.config.max_trials
+        max_trials = self.confidence_model.config.max_trials
         total_raw_outputs = []
         with tqdm.auto.tqdm(total=max_trials) as pbar:
             while True:
@@ -164,12 +167,7 @@ class ConfidentSolver:
         return raw_outputs
 
     def _create_dataframe(self, total_raw_outputs):
-        llm_model = self.config.llm_model
-        token_usage = None
-        if llm_model in [LlmModelEnum.GPT_4O, LlmModelEnum.GPT_4O_MINI, LlmModelEnum.O3_MINI_HIGH, LlmModelEnum.O3_MINI_MEDIUM, LlmModelEnum.O3_MINI_LOW]:
-            token_usage = [x['raw'].response_metadata['token_usage']['completion_tokens'] for x in total_raw_outputs]
-        else:
-            token_usage = [x['raw'].usage_metadata['total_tokens'] for x in total_raw_outputs]
+        token_usage = [x['raw'].usage_metadata['output_tokens'] for x in total_raw_outputs]
 
         return pd.DataFrame({
             'answer': [x['parsed'].answer for x in total_raw_outputs],

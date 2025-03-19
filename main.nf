@@ -29,7 +29,6 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
     elif name == 'medqa':
         df = pd.read_json('${projectDir}/resources/data/medqa.jsonl', lines=True)
         letter_to_number = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5}
-
         sorted_keys = list("ABCDE")
         formatted_options = ['\\n'.join([str(i+1)+". " +x[key] for i, key in enumerate(sorted_keys)]) for x in df['options']]
 
@@ -92,7 +91,7 @@ def load_dataset(name: typing.Literal['asdiv', 'gsm', 'aime24', 'medqa', 'gpqa_d
         random.seed(SEED)
 
         df = pd.read_csv("${projectDir}/resources/data/gpqa_diamond.csv")
-        
+
         answer_columns = [
             "Correct Answer",
             "Incorrect Answer 1",
@@ -150,7 +149,7 @@ process CONSOL {
     def safe_input = input.replace("\$", "\\\$")
     """
     #!/usr/bin/env bash
-    consol --prompt "$safe_input" --debug --output_type abcdef --max_trials 10 --llm_model ${params.llm_model} --confidence_model ${params.confidence_model} > ${id}.csv
+    consol --prompt "$safe_input" --debug --output_type abcdef --llm_model ${params.llm_model} --confidence_model ${params.confidence_model} > ${id}.csv
     """
 }
 
