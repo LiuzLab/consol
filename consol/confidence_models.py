@@ -25,9 +25,9 @@ class SprtConfidenceModel(AbstractConfidenceModel):
         max_trials=256,
         p1 = 0.5001,
         alpha = 0.05,
-        # beta = 1-.05-.000018,
-        beta = 1-.05-.000024,
         # beta = 1-.05-.000030,
+        beta = 1-.05-.000024,
+        # beta = 1-.05-.000018,
     ):
         self.config = SprtConfidenceModelConfig(
             max_trials = max_trials,
