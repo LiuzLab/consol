@@ -64,9 +64,9 @@ class MsprtConfidenceModel(AbstractConfidenceModel):
         priori_alpha=1e6,
         priori_beta=1e6,
         alpha = 0.05,
-        # beta = 1-.95-.00009,
-        beta = 1-.95-.00006,
-        # beta = 1-.95-.00003,
+        # beta = 1-.05-.00009,
+        beta = 1-.05-.00006,
+        # beta = 1-.05-.00003,
     ):
         self.config = MsprtConfidenceModelConfig(
             max_trials = max_trials,
