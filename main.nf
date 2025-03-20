@@ -1,7 +1,7 @@
-params.input = "gpqa_diamond"
+params.input = "gpqa_diamond_multi_choice"
 params.publishDirSuffix = ""
 params.llm_model = "o3-mini-low"
-params.confidence_model = "vote"
+params.confidence_model = "pvalue"
 
 process JSONL_TO_CSV {
     output:
