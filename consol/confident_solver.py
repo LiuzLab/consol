@@ -3,14 +3,14 @@ import typing
 import sys
 
 import pydantic
+import langchain_core
 import langchain_openai
 import langchain_ollama
 import langchain_google_genai
-import langchain_core
 import tqdm.auto
 import pandas as pd
 
-from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, ABCDEFOutput, ABCDOutput, YesNoOutput
+from .output_formats import AbstractOutput, ReasonedMixin, FloatOutput, BoolOutput, ABCDEFOutput, ABCDOutput, YesNoOutput
 from .confidence_models import AbstractConfidenceModel, MsprtConfidenceModel, SprtConfidenceModel, PValueConfidenceModel, BayesianPosteriorConfidenceModel, VoteConfidenceModel
 
 class LlmModelEnum(enum.StrEnum):
@@ -26,18 +26,19 @@ class LlmModelEnum(enum.StrEnum):
 
 
 class ConfidenceModelEnum(enum.StrEnum):
-    Msprt = "msprt"
-    Sprt = "sprt"
-    Pvalue = "pvalue"
-    BayesianPosterior = "bayesian_posterior"
-    Vote40 = "vote40"
-    Vote1 = "vote1"
+    MSPRT = "msprt"
+    SPRT = "sprt"
+    PVALUE = "pvalue"
+    BAYESIAN_POSTERIOR = "bayesian_posterior"
+    VOTE40 = "vote40"
+    VOTE1 = "vote1"
 
-class OutputTypeEnum(enum.StrEnum):
-    Float = "float"
-    Abcdef = "abcdef"
-    YesNo = "yesno"
-    Abcd = "abcd"
+class OutputSchemaTypeEnum(enum.StrEnum):
+    FLOAT = "float"
+    BOOL = "bool"
+    ABCDEF = "abcdef"
+    YES_NO = "yesno"
+    ABCD = "abcd"
 
 class ConfidentSolverConfig(pydantic.BaseModel):
     llm_model: LlmModelEnum
@@ -47,41 +48,15 @@ class ConfidentSolver:
         self,
         llm_model: LlmModelEnum,
         confidence_model: typing.Union[ConfidenceModelEnum, AbstractConfidenceModel],
-        output_schema: typing.Union[OutputTypeEnum, AbstractOutput],
+        output_schema: typing.Union[OutputSchemaTypeEnum, AbstractOutput],
     ):
+        confidence_model = self.resolve_confidence_model(confidence_model)
+        output_schema = self.resolve_output_schema(output_schema)
+
+        self.confidence_model = confidence_model
         self.config = ConfidentSolverConfig(
             llm_model=llm_model,
         )
-
-        if confidence_model == ConfidenceModelEnum.Msprt:
-            self.confidence_model = MsprtConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.Sprt:
-            self.confidence_model = SprtConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.Pvalue:
-            self.confidence_model = PValueConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.BayesianPosterior:
-            self.confidence_model = BayesianPosteriorConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.Vote40:
-            self.confidence_model = VoteConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.Vote1:
-            self.confidence_model = VoteConfidenceModel(max_trials=1)
-        elif isinstance(confidence_model, AbstractConfidenceModel):
-            self.confidence_model = confidence_model
-        else:
-            raise ValueError(f"Unknown Confidence Model: {confidence_model}")
-
-        if output_schema == OutputTypeEnum.Float:
-            output_schema = FloatOutput
-        elif output_schema == OutputTypeEnum.Abcdef:
-            output_schema = ABCDEFOutput
-        elif output_schema == OutputTypeEnum.YesNo:
-            output_schema = YesNoOutput
-        elif output_schema == OutputTypeEnum.Abcd:
-            output_schema = ABCDOutput
-        elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
-            pass
-        else:
-            raise ValueError(f"Unknown Output Schema: {output_schema}")
 
         if llm_model in [LlmModelEnum.O3_MINI_LOW, LlmModelEnum.O3_MINI_MEDIUM, LlmModelEnum.O3_MINI_HIGH]:
             llm = langchain_openai.ChatOpenAI(
@@ -113,6 +88,41 @@ class ConfidentSolver:
 
         self.llm_with_structured_output = llm.with_structured_output(output_schema, include_raw=True)
 
+    def resolve_confidence_model(self, confidence_model):
+        if confidence_model == ConfidenceModelEnum.MSPRT:
+            confidence_model = MsprtConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.SPRT:
+            confidence_model = SprtConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.PVALUE:
+            confidence_model = PValueConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.BAYESIAN_POSTERIOR:
+            confidence_model = BayesianPosteriorConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.VOTE40:
+            confidence_model = VoteConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.VOTE1:
+            confidence_model = VoteConfidenceModel(max_trials=1)
+        elif isinstance(confidence_model, AbstractConfidenceModel):
+            pass
+        else:
+            raise ValueError(f"Unknown Confidence Model: {confidence_model}")
+        return confidence_model
+    
+    def resolve_output_schema(self, output_schema):
+        if output_schema == OutputSchemaTypeEnum.FLOAT:
+            output_schema = FloatOutput
+        if output_schema == OutputSchemaTypeEnum.BOOL:
+            output_schema = BoolOutput
+        elif output_schema == OutputSchemaTypeEnum.ABCDEF:
+            output_schema = ABCDEFOutput
+        elif output_schema == OutputSchemaTypeEnum.YES_NO:
+            output_schema = YesNoOutput
+        elif output_schema == OutputSchemaTypeEnum.ABCD:
+            output_schema = ABCDOutput
+        elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
+            pass
+        else:
+            raise ValueError(f"Unknown Output Schema: {output_schema}")
+        return output_schema
 
     def invoke(self, input, debug=False, **kwargs):
         messages = self._prepare_messages(input)

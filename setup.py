@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="consol",
-    version="0.2.5",
+    version="0.3.0",
     packages=find_packages(),
     install_requires=[
         'python-dotenv',
@@ -20,7 +20,7 @@ setup(
     },
     author=["Jaeyeon Lee", "Hyun-Hwan Jeong"],
     author_email=["Jaeyeon.Lee@bcm.edu", "hyun-hwan.jeong@bcm.edu"],
-    description="consol: Confident Solver to use LLM to solve various problems confidently and efficiently with a statistical approach.",
+    description="Confident Solver enables you to solve problems confidently and efficiently by leveraging Large Language Models (LLMs) enhanced with robust statistical approaches, such as the SPRT",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/LiuzLab/consol",
