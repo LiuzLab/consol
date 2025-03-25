@@ -59,55 +59,55 @@ print(answer)
 
 For a comprehensive understanding and detailed methodology, please refer to our [research publication](https://www.alphaxiv.org/abs/2503.17587).
 
-## Example
+## 📚 Examples
 
 ### Accuracy
 
-#### Without ConSol
+#### Without ConSol (Inconsistent Results)
 
 ```bash
-$ consol --confidence_model vote1 --llm_model gpt-4o-mini --prompt "Jen enters a lottery by picking \$4\$ distinct numbers from \$S=\\{1,2,3,\\cdots,9,10\\}.\$ \$4\$ numbers are randomly chosen from \$S.\$ She wins a prize if at least two of her numbers were \$2\$ of the randomly chosen numbers, and wins the grand prize if all four of her numbers were the randomly chosen numbers. The probability of her winning the grand prize given that she won a prize is \$\\tfrac{m}{n}\$ where \$m\$ and \$n\$ are relatively prime positive integers. Find \$m+n\$."
+$ consol --confidence_model vote1 --llm_model gpt-4o-mini --prompt "Jen enters a lottery by picking \(4\) distinct numbers from \(S=\{1,2,3,\dots,10\}\). \(4\) numbers are randomly chosen from \(S\). She wins a prize if at least two of her numbers match the randomly chosen numbers, and wins the grand prize if all four match. The probability of winning the grand prize given she has already won a prize is \(\frac{m}{n}\), with \(m,n\) relatively prime positive integers. Find \(m+n\)."
 # or simply consol --confidence_model vote1
-# => 11.0
+# => 11.0 (varies upon re-run)
 ```
 
-The result always changes whenever you re-run.
+Results vary with each run due to model inconsistency.
 
-#### With ConSol
+#### With ConSol (Consistent Results)
 
 ```bash
-consol --confidence_model msprt --llm_model gpt-4o-mini --prompt "Jen enters a lottery by picking \$4\$ distinct numbers from \$S=\\{1,2,3,\\cdots,9,10\\}.\$ \$4\$ numbers are randomly chosen from \$S.\$ She wins a prize if at least two of her numbers were \$2\$ of the randomly chosen numbers, and wins the grand prize if all four of her numbers were the randomly chosen numbers. The probability of her winning the grand prize given that she won a prize is \$\\tfrac{m}{n}\$ where \$m\$ and \$n\$ are relatively prime positive integers. Find \$m+n\$."
+$ consol --confidence_model msprt --llm_model gpt-4o-mini --prompt "Jen enters a lottery by picking \(4\) distinct numbers from \(S=\{1,2,3,\dots,10\}\). \(4\) numbers are randomly chosen from \(S\). She wins a prize if at least two of her numbers match the randomly chosen numbers, and wins the grand prize if all four match. The probability of winning the grand prize given she has already won a prize is \(\frac{m}{n}\), with \(m,n\) relatively prime positive integers. Find \(m+n\)."
 # or simply consol
-# => 116.0 (Always)
+# => 116.0 (consistent)
 ```
 
-Typically it stops at 20-100 samples until finding consistency.
+Typically, ConSol achieves consistency within 20-100 samples.
 
-### Efficiecny
+### Efficiency
 
-#### With Prior Method (Ada-Cons)
+#### Prior Method (Ada-Cons)
 
 ```bash
 $ consol --confidence_model bayesian_posterior --prompt "random integer between 0 to 20"
-# => Random Number
+# => Random number
 ```
 
-Typically it stops at 40 trials, hitting the max trials
+Typically requires 40 samples (maximum reached frequently).
 
-#### With Our Method (mixture SPRT)
+#### Our Method (mixture SPRT)
 
 ```bash
-consol --confidence_model msprt --prompt "random integer between 0 to 20"
-# => Random Number
+$ consol --confidence_model msprt --prompt "random integer between 0 to 20"
+# => Random number
 ```
 
-Typically it stops at 10 to 30 trials.
+Typically concludes early within 10-30 samples due to effective randomness detection.
 
 ### Verbose Output for Debugging
 
 ```bash
 $ consol --debug
-,answer,token_usage
+index,answer,token_usage
 0,116.0,484
 1,47.0,81
 2,11.0,69
@@ -130,4 +130,5 @@ $ consol --debug
 19,116.0,427
 ```
 
-The output shows the result as a table.
+Debugging mode provides a detailed table of answers and corresponding token usage for diagnostics.
+
