@@ -50,8 +50,8 @@ class ConfidentSolver:
         confidence_model: typing.Union[ConfidenceModelEnum, AbstractConfidenceModel],
         output_schema: typing.Union[OutputSchemaTypeEnum, AbstractOutput],
     ):
-        confidence_model = self.resolve_confidence_model(confidence_model)
-        output_schema = self.resolve_output_schema(output_schema)
+        confidence_model = self._resolve_confidence_model(confidence_model)
+        output_schema = self._resolve_output_schema(output_schema)
 
         self.confidence_model = confidence_model
         self.config = ConfidentSolverConfig(
@@ -88,41 +88,6 @@ class ConfidentSolver:
 
         self.llm_with_structured_output = llm.with_structured_output(output_schema, include_raw=True)
 
-    def resolve_confidence_model(self, confidence_model):
-        if confidence_model == ConfidenceModelEnum.MSPRT:
-            confidence_model = MsprtConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.SPRT:
-            confidence_model = SprtConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.PVALUE:
-            confidence_model = PValueConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.BAYESIAN_POSTERIOR:
-            confidence_model = BayesianPosteriorConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.VOTE40:
-            confidence_model = VoteConfidenceModel()
-        elif confidence_model == ConfidenceModelEnum.VOTE1:
-            confidence_model = VoteConfidenceModel(max_trials=1)
-        elif isinstance(confidence_model, AbstractConfidenceModel):
-            pass
-        else:
-            raise ValueError(f"Unknown Confidence Model: {confidence_model}")
-        return confidence_model
-    
-    def resolve_output_schema(self, output_schema):
-        if output_schema == OutputSchemaTypeEnum.FLOAT:
-            output_schema = FloatOutput
-        if output_schema == OutputSchemaTypeEnum.BOOL:
-            output_schema = BoolOutput
-        elif output_schema == OutputSchemaTypeEnum.ABCDEF:
-            output_schema = ABCDEFOutput
-        elif output_schema == OutputSchemaTypeEnum.YES_NO:
-            output_schema = YesNoOutput
-        elif output_schema == OutputSchemaTypeEnum.ABCD:
-            output_schema = ABCDOutput
-        elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
-            pass
-        else:
-            raise ValueError(f"Unknown Output Schema: {output_schema}")
-        return output_schema
 
     def invoke(self, input, debug=False, **kwargs):
         messages = self._prepare_messages(input)
@@ -142,6 +107,43 @@ class ConfidentSolver:
         if debug:
             return df
         return df['answer'].mode().iloc[0]
+
+
+    def _resolve_confidence_model(self, confidence_model):
+        if confidence_model == ConfidenceModelEnum.MSPRT:
+            confidence_model = MsprtConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.SPRT:
+            confidence_model = SprtConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.PVALUE:
+            confidence_model = PValueConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.BAYESIAN_POSTERIOR:
+            confidence_model = BayesianPosteriorConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.VOTE40:
+            confidence_model = VoteConfidenceModel()
+        elif confidence_model == ConfidenceModelEnum.VOTE1:
+            confidence_model = VoteConfidenceModel(max_trials=1)
+        elif isinstance(confidence_model, AbstractConfidenceModel):
+            pass
+        else:
+            raise ValueError(f"Unknown Confidence Model: {confidence_model}")
+        return confidence_model
+    
+    def _resolve_output_schema(self, output_schema):
+        if output_schema == OutputSchemaTypeEnum.FLOAT:
+            output_schema = FloatOutput
+        if output_schema == OutputSchemaTypeEnum.BOOL:
+            output_schema = BoolOutput
+        elif output_schema == OutputSchemaTypeEnum.ABCDEF:
+            output_schema = ABCDEFOutput
+        elif output_schema == OutputSchemaTypeEnum.YES_NO:
+            output_schema = YesNoOutput
+        elif output_schema == OutputSchemaTypeEnum.ABCD:
+            output_schema = ABCDOutput
+        elif isinstance(output_schema, type) and issubclass(output_schema, AbstractOutput):
+            pass
+        else:
+            raise ValueError(f"Unknown Output Schema: {output_schema}")
+        return output_schema
 
     def _prepare_messages(self, input):
         if isinstance(input, str):
