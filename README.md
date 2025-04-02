@@ -38,7 +38,7 @@ from consol import ConfidentSolver
 consol = ConfidentSolver(
     llm_model="gpt-4o-mini",         # Supported models: "gpt-4o-mini", "o3-mini-low", etc.
     confidence_model="msprt",        # Options: "msprt", "sprt", "pvalue", "bayesian_posterior", "vote40", "vote1"
-    output_schema="float"            # Output formats: "abce", "float", etc.
+    output_schema="float"            # Output formats: "abcd", "float", etc.
 )
 
 # Invoke ConSol to solve a problem
