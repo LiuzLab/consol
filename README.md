@@ -3,6 +3,8 @@
 **ConSol** enables you to solve problems confidently and efficiently by leveraging Large Language Models (LLMs) enhanced with robust statistical approaches, such as the [Sequential Probability Ratio Test (SPRT)](https://en.wikipedia.org/wiki/Sequential_probability_ratio_test).
 
 [![PyPI version](https://badge.fury.io/py/consol.svg)](https://badge.fury.io/py/consol)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/consol)
+
 
 ---
 
