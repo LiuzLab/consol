@@ -12,10 +12,12 @@
 
 ### Installation
 
-Install ConSol directly from PyPI:
+Install ConSol directly from Anonymous Github:
 
 ```bash
-pip install consol
+git clone https://github-repo/consol
+cd consol
+pip install .
 ```
 
 ### Command Line Usage
