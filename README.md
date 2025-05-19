@@ -12,12 +12,10 @@
 
 ### Installation
 
-Install ConSol directly from Anonymous Github:
+Install ConSol directly from Software:
 
 ```bash
-git clone https://github-repo/consol
-cd consol
-pip install .
+pip install ./consol-0.3.0.zip
 ```
 
 ### Command Line Usage
